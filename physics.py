@@ -40,10 +40,100 @@ class Object:
         return self.location
 
 
+class Spring:
+    def __init__(self, obj1: Object, obj2: Object, k: float = 15000.0, d: float = 150.0,
+                 rest_length: float = None, yield_limit: float = 0.15, break_limit: float = 0.35):
+        """
+        obj1, obj2: Связанные объекты (узлы)
+        k: Жесткость пружины
+        d: Коэффициент демпфирования (амортизатор)
+        rest_length: Исходная длина (если None, вычисляется автоматически при создании)
+        yield_limit: Предел пластичности (какой % деформации согнет балку навсегда, например 0.15 = 15%)
+        break_limit: Предел разрыва (при каком % деформации балка лопнет)
+        """
+        self.obj1 = obj1
+        self.obj2 = obj2
+        self.k = k
+        self.d = d
+
+        # Автоматический расчет длины покоя, если она не задана явно
+        if rest_length is None:
+            dx = obj2.location[0] - obj1.location[0]
+            dy = obj2.location[1] - obj1.location[1]
+            self.rest_length = math.sqrt(dx ** 2 + dy ** 2)
+        else:
+            self.rest_length = rest_length
+
+        self.yield_limit = yield_limit
+        self.break_limit = break_limit
+        self.is_broken = False
+        self.current_strain = 0.0  # Относительная деформация для визуализации
+
+    def update(self, dt: float):
+        if self.is_broken:
+            return
+
+        # Вектор между узлами
+        dx = self.obj2.location[0] - self.obj1.location[0]
+        dy = self.obj2.location[1] - self.obj1.location[1]
+        L = math.sqrt(dx ** 2 + dy ** 2)
+
+        if L == 0.0:
+            return
+
+        # Единичный вектор направления балки
+        nx = dx / L
+        ny = dy / L
+
+        # Текущая относительная деформация (положительная - растяжение, отрицательная - сжатие)
+        self.current_strain = (L - self.rest_length) / self.rest_length
+
+        # 1. ПРОВЕРКА НА РАЗРЫВ (Разрушение конструкции)
+        if abs(self.current_strain) > self.break_limit:
+            self.is_broken = True
+            return
+
+        # 2. ПЛАСТИЧЕСКАЯ ДЕФОРМАЦИЯ (Эффект "мятого металла")
+        # Если балка сжата или растянута сильнее предела пластичности, она меняет свою базовую длину
+        if abs(self.current_strain) > self.yield_limit:
+            # Вычисляем целевую длину, к которой балка деформируется
+            target_rest = L - math.copysign(self.yield_limit * self.rest_length, self.current_strain)
+            # Металл мнется постепенно (скорость пластического сдвига)
+            self.rest_length += (target_rest - self.rest_length) * 0.2
+
+        # 3. РАСЧЕТ СИЛЫ УПРУГОСТИ (Закон Гука)
+        fs = self.k * (L - self.rest_length)
+
+        # 4. РАСЧЕТ СИЛЫ ДЕМПФИРОВАНИЯ (Гашение колебаний)
+        # Нам нужна проекция относительной скорости на ось балки
+        rvx = self.obj2.velocity[0] - self.obj1.velocity[0]
+        rvy = self.obj2.velocity[1] - self.obj1.velocity[1]
+        v_damp = rvx * nx + rvy * ny
+        fd = self.d * v_damp
+
+        # Полное скалярное усилие
+        f_total = fs + fd
+
+        # Вектор силы
+        fx = f_total * nx
+        fy = f_total * ny
+
+        # Применяем силы к узлам (Ускорение a = F / m, изменение скорости dv = a * dt)
+        # Мы можем закрепить некоторые узлы намертво, добавив им флаг `static = True`
+        if not getattr(self.obj1, 'static', False):
+            self.obj1.velocity[0] += (fx / self.obj1.mass) * dt
+            self.obj1.velocity[1] += (fy / self.obj1.mass) * dt
+
+        if not getattr(self.obj2, 'static', False):
+            self.obj2.velocity[0] -= (fx / self.obj2.mass) * dt
+            self.obj2.velocity[1] -= (fy / self.obj2.mass) * dt 
+
+
 class PhysicSimulation:
     def __init__(self, Area: VirtualArea):
         self.Area = Area
         self.objects = []
+        self.springs = []
         self.time = 0
         self.g = 9.80665
         self.dt = 0.1
@@ -53,6 +143,10 @@ class PhysicSimulation:
         """Метод для добавления новых тел в симуляцию"""
         self.objects.append(obj)
 
+    def add_spring(self, spring: Spring):
+        """Регистрация новой балки в симуляции"""
+        self.springs.append(spring)
+
     def resolve_ball_collisions(self):
         """Просчет соударений между всеми парами шаров"""
         n = len(self.objects)
@@ -60,6 +154,14 @@ class PhysicSimulation:
             for j in range(i + 1, n):
                 obj1 = self.objects[i]
                 obj2 = self.objects[j]
+
+                connected = False
+                for s in self.springs:
+                    if (s.obj1 == obj1 and s.obj2 == obj2) or (s.obj1 == obj2 and s.obj2 == obj1):
+                        connected = True
+                        break
+                if connected:
+                    continue
 
                 # Вектор расстояния между центрами шаров
                 dx = obj2.location[0] - obj1.location[0]
@@ -226,6 +328,13 @@ class PhysicSimulation:
 
     def step(self, dt):
         """Просчитывает физику для всех объектов"""
+        # 1. Рассчитываем силы во всех балках и обновляем скорости узлов
+        for spring in self.springs:
+            spring.update(dt)
+
+        # Очищаем физический мир от разорванных балок
+        self.springs = [s for s in self.springs if not s.is_broken]
+
         for obj in self.objects:
             vx = obj.velocity[0]
             vy = obj.velocity[1]
