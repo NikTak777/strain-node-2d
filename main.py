@@ -4,353 +4,200 @@ import sys
 import math
 import tkinter as tk
 from tkinter import messagebox
-from physics import VirtualArea, Object, PhysicSimulation, Spring
+from physics.area import Area
+from physics.objects import Object
+from physics.springs import Spring
+from physics.simulation import PhysicSimulation
 
 FPS = 120
 SCALE = 20.0
+WIDTH, HEIGHT = 1200, 800
 
 
-def get_ball_surface(obj, scale):
-    """
-    Генерирует и кэширует красивую градиентную текстуру шара
-    с рисунком, чтобы было видно его вращение.
-    """
-    if obj.surface is not None:
-        return obj.surface
+class SimulationApp:
+    def __init__(self, fps: int = 120, width: int = 1200, height: int = 800, scale: float = 20.0):
+        pygame.init()
+        pygame.font.init()
+        self.fps = fps
+        self.width = width
+        self.height = height
+        self.scale = scale
 
-    draw_radius = max(3, int(obj.radius * scale))
-    surf_size = draw_radius * 2
-    surf = pygame.Surface((surf_size, surf_size), pygame.SRCALPHA)
+        self.screen = pygame.display.set_mode((self.width, self.height), pygame.RESIZABLE)
+        pygame.display.set_caption("StrainNode2D")
 
-    color = obj.color
-    # Отрисовка радиального 3D-градиента (concentric circles)
-    for r_offset in range(draw_radius, 0, -1):
-        factor = r_offset / draw_radius  # 1 на краю, 0 в центре
-        r_c = max(0, min(255, int(color[0] * (1 - factor * 0.5))))
-        g_c = max(0, min(255, int(color[1] * (1 - factor * 0.5))))
-        b_c = max(0, min(255, int(color[2] * (1 - factor * 0.5))))
+        self.clock = pygame.time.Clock()
+        self.running = True
+        self.selected_obj = None
 
-        pygame.draw.circle(surf, (r_c, g_c, b_c), (draw_radius, draw_radius), r_offset)
+        self.font = pygame.font.SysFont("Consolas", 18)
 
-    # Текстурные линии и точки, чтобы видеть вращение
-    # 2. Декоративное темное пятно
-    dark_spot = (max(0, color[0] - 100), max(0, color[1] - 100), max(0, color[2] - 100))
-    pygame.draw.circle(surf, dark_spot, (int(draw_radius * 1.4), int(draw_radius * 1.3)), max(2, draw_radius // 6))
-    # 3. Блик света (для эффекта глянца)
-    pygame.draw.circle(surf, (255, 255, 255), (int(draw_radius * 0.6), int(draw_radius * 0.6)),
-                       max(1, draw_radius // 8))
+        phys_width = self.width / self.scale
+        phys_height = self.height / self.scale
+        self.area = Area(0, 0, phys_width, phys_height)
+        self.sim = PhysicSimulation(self.area)
 
-    obj.surface = surf
-    return surf
+    @staticmethod
+    def get_ball_surface(obj: Object, scale: float = 20):
+        """
+        Генерирует и кэширует красивую градиентную текстуру шара
+        с рисунком, чтобы было видно его вращение.
+        """
+        if obj.surface is not None:
+            return obj.surface
 
+        draw_radius = max(3, int(obj.radius * scale))
+        surf_size = draw_radius * 2
+        surf = pygame.Surface((surf_size, surf_size), pygame.SRCALPHA)
 
-def show_spawn_dialog():
-    """
-    Открывает маленькое нативное диалоговое окно для ввода параметров шара.
-    Возвращает словарь с параметрами, если нажали 'Создать', или None, если 'Отменить'.
-    """
-    result = {}
+        color = obj.color
+        # Отрисовка радиального 3D-градиента (concentric circles)
+        for r_offset in range(draw_radius, 0, -1):
+            factor = r_offset / draw_radius  # 1 на краю, 0 в центре
+            r_c = max(0, min(255, int(color[0] * (1 - factor * 0.5))))
+            g_c = max(0, min(255, int(color[1] * (1 - factor * 0.5))))
+            b_c = max(0, min(255, int(color[2] * (1 - factor * 0.5))))
 
-    # Создаем скрытое главное окно, чтобы не плодить лишние элементы
-    root = tk.Tk()
-    root.title("Параметры нового шара")
-    root.geometry("320x350")
-    root.resizable(False, False)
+            pygame.draw.circle(surf, (r_c, g_c, b_c), (draw_radius, draw_radius), r_offset)
 
-    # Помещаем окно поверх остальных
-    root.attributes('-topmost', True)
+        # Текстурные линии и точки, чтобы видеть вращение
+        # 2. Декоративное темное пятно
+        dark_spot = (max(0, color[0] - 100), max(0, color[1] - 100), max(0, color[2] - 100))
+        pygame.draw.circle(surf, dark_spot, (int(draw_radius * 1.4), int(draw_radius * 1.3)), max(2, draw_radius // 6))
+        # 3. Блик света (для эффекта глянца)
+        pygame.draw.circle(surf, (255, 255, 255), (int(draw_radius * 0.6), int(draw_radius * 0.6)),
+                           max(1, draw_radius // 8))
 
-    # Список полей: (Название для пользователя, ключ в словаре, значение по умолчанию)
-    fields = [
-        ("Радиус (м):", "radius", "2.0"),
-        ("Плотность (кг/м³):", "density", "5000"),
-        ("Упругость Restitution (0.0 - 1.0):", "restitution", "0.6"),
-        ("Трение Friction (0.0 - 1.0):", "friction", "0.4"),
-        ("Начальная скорость X (м/с):", "vx", "20.0"),
-        ("Начальная скорость Y (м/с):", "vy", "10.0"),
-        ("Вращение (рад/с):", "spin", "0.0")
-    ]
+        obj.surface = surf
+        return surf
 
-    entries = {}
+    @staticmethod
+    def draw_springs(screen, springs, scale, height):
+        for spring in springs:
+            if spring.is_broken:
+                continue
 
-    # Сетка для размещения элементов
-    for i, (label_text, key, default) in enumerate(fields):
-        lbl = tk.Label(root, text=label_text, font=("Arial", 10))
-        lbl.grid(row=i, column=0, padx=15, pady=6, sticky="e")
+            p1_x, p1_y = spring.obj1.get_location()
+            p2_x, p2_y = spring.obj2.get_location()
 
-        entry = tk.Entry(root, font=("Arial", 10), width=12)
-        entry.insert(0, default)
-        entry.grid(row=i, column=1, padx=15, pady=6)
-        entries[key] = entry
+            # Перевод в экранные координаты
+            start_pos = (int(p1_x * scale), int(height - (p1_y * scale)))
+            end_pos = (int(p2_x * scale), int(height - (p2_y * scale)))
 
-    def on_create():
-        try:
-            # Парсим введенные значения и проверяем на ошибки ввода
-            result["radius"] = float(entries["radius"].get())
-            result["density"] = float(entries["density"].get())
-            result["restitution"] = float(entries["restitution"].get())
-            result["friction"] = float(entries["friction"].get())
-            result["vx"] = float(entries["vx"].get())
-            result["vy"] = float(entries["vy"].get())
-            result["spin"] = float(entries["spin"].get())
-            result["create"] = True
-            root.destroy()  # Закрываем окно
-        except ValueError:
-            messagebox.showerror("Ошибка", "Пожалуйста, введите корректные числа во все поля!")
+            # Цветовая индикация деформации (плавно перетекает из зеленого в красный/синий)
+            strain = spring.current_strain
+            # Нормализуем деформацию относительно предела пластичности
+            factor = min(1.0, abs(strain) / spring.yield_limit)
 
-    def on_cancel():
-        result["create"] = False
-        root.destroy()
+            if strain > 0:  # Растяжение (Тенденция к красному)
+                color = (int(255 * factor), int(255 * (1 - factor)), 0)
+            else:  # Сжатие (Тенденция к синему)
+                color = (0, int(255 * (1 - factor)), int(255 * factor))
 
-    # Фрейм для кнопок внизу
-    btn_frame = tk.Frame(root)
-    btn_frame.grid(row=len(fields), columnspan=2, pady=15)
+            # Толщина линии зависит от упругости (чем жестче балка, тем она толще визуально)
+            thickness = max(1, min(8, int(spring.k / 3000)))
 
-    btn_cancel = tk.Button(btn_frame, text="Отменить", command=on_cancel, width=10, bg="#ff6666")
-    btn_cancel.pack(side="left", padx=10)
+            pygame.draw.line(screen, color, start_pos, end_pos, thickness)
 
-    btn_create = tk.Button(btn_frame, text="Создать", command=on_create, width=10, bg="#66ff66")
-    btn_create.pack(side="left", padx=10)
+    @staticmethod
+    def show_spawn_dialog():
+        """
+        Открывает маленькое нативное диалоговое окно для ввода параметров шара.
+        Возвращает словарь с параметрами, если нажали 'Создать', или None, если 'Отменить'.
+        """
+        result = {}
 
-    # Если пользователь закроет окно на крестик, сработает отмена
-    root.protocol("WM_DELETE_WINDOW", on_cancel)
+        # Создаем скрытое главное окно, чтобы не плодить лишние элементы
+        root = tk.Tk()
+        root.title("Параметры нового шара")
+        root.geometry("320x350")
+        root.resizable(False, False)
 
-    # Запуск цикла обработки событий окна (блокирует Pygame, пока не закроем)
-    root.mainloop()
+        # Помещаем окно поверх остальных
+        root.attributes('-topmost', True)
 
-    return result if result.get("create") else None
+        # Список полей: (Название для пользователя, ключ в словаре, значение по умолчанию)
+        fields = [
+            ("Радиус (м):", "radius", "2.0"),
+            ("Плотность (кг/м³):", "density", "5000"),
+            ("Упругость Restitution (0.0 - 1.0):", "restitution", "0.6"),
+            ("Трение Friction (0.0 - 1.0):", "friction", "0.4"),
+            ("Начальная скорость X (м/с):", "vx", "20.0"),
+            ("Начальная скорость Y (м/с):", "vy", "10.0"),
+            ("Вращение (рад/с):", "spin", "0.0")
+        ]
 
+        entries = {}
 
-def draw_springs(screen, springs, scale, height):
-    for spring in springs:
-        if spring.is_broken:
-            continue
+        # Сетка для размещения элементов
+        for i, (label_text, key, default) in enumerate(fields):
+            lbl = tk.Label(root, text=label_text, font=("Arial", 10))
+            lbl.grid(row=i, column=0, padx=15, pady=6, sticky="e")
 
-        p1_x, p1_y = spring.obj1.get_location()
-        p2_x, p2_y = spring.obj2.get_location()
+            entry = tk.Entry(root, font=("Arial", 10), width=12)
+            entry.insert(0, default)
+            entry.grid(row=i, column=1, padx=15, pady=6)
+            entries[key] = entry
 
-        # Перевод в экранные координаты
-        start_pos = (int(p1_x * scale), int(height - (p1_y * scale)))
-        end_pos = (int(p2_x * scale), int(height - (p2_y * scale)))
+        def on_create():
+            try:
+                # Парсим введенные значения и проверяем на ошибки ввода
+                result["radius"] = float(entries["radius"].get())
+                result["density"] = float(entries["density"].get())
+                result["restitution"] = float(entries["restitution"].get())
+                result["friction"] = float(entries["friction"].get())
+                result["vx"] = float(entries["vx"].get())
+                result["vy"] = float(entries["vy"].get())
+                result["spin"] = float(entries["spin"].get())
+                result["create"] = True
+                root.destroy()  # Закрываем окно
+            except ValueError:
+                messagebox.showerror("Ошибка", "Пожалуйста, введите корректные числа во все поля!")
 
-        # Цветовая индикация деформации (плавно перетекает из зеленого в красный/синий)
-        strain = spring.current_strain
-        # Нормализуем деформацию относительно предела пластичности
-        factor = min(1.0, abs(strain) / spring.yield_limit)
+        def on_cancel():
+            result["create"] = False
+            root.destroy()
 
-        if strain > 0:  # Растяжение (Тенденция к красному)
-            color = (int(255 * factor), int(255 * (1 - factor)), 0)
-        else:  # Сжатие (Тенденция к синему)
-            color = (0, int(255 * (1 - factor)), int(255 * factor))
+        # Фрейм для кнопок внизу
+        btn_frame = tk.Frame(root)
+        btn_frame.grid(row=len(fields), columnspan=2, pady=15)
 
-        # Толщина линии зависит от упругости (чем жестче балка, тем она толще визуально)
-        thickness = max(1, min(8, int(spring.k / 3000)))
+        btn_cancel = tk.Button(btn_frame, text="Отменить", command=on_cancel, width=10, bg="#ff6666")
+        btn_cancel.pack(side="left", padx=10)
 
-        pygame.draw.line(screen, color, start_pos, end_pos, thickness)
+        btn_create = tk.Button(btn_frame, text="Создать", command=on_create, width=10, bg="#66ff66")
+        btn_create.pack(side="left", padx=10)
 
+        # Если пользователь закроет окно на крестик, сработает отмена
+        root.protocol("WM_DELETE_WINDOW", on_cancel)
 
-def main():
-    pygame.init()
-    WIDTH, HEIGHT = 1200, 800
-    screen = pygame.display.set_mode((WIDTH, HEIGHT), pygame.RESIZABLE)
-    pygame.display.set_caption("2D Spin & Magnus Physics Engine")
-    clock = pygame.time.Clock()
+        # Запуск цикла обработки событий окна (блокирует Pygame, пока не закроем)
+        root.mainloop()
 
-    phys_width = WIDTH / SCALE
-    phys_height = HEIGHT / SCALE
+        return result if result.get("create") else None
 
-    box = VirtualArea(0, 0, phys_width, phys_height)
-    sim = PhysicSimulation(box)
-
-    selected_obj = None
-
-    obj1 = Object(x=4.0, y=4.0, radius=2.0, velocity=[30.0, 0.0], density=200.0, restitution=0.5, friction=0.5,
-                  color=(255, 50, 50))
-    sim.add_object(obj1)
-    obj2 = Object(x=20.0, y=4.0, radius=2.0, velocity=[30.0, 0.0], density=200.0, restitution=0.5, friction=0.5,
-                  color=(255, 50, 50))
-    sim.add_object(obj2)
-    obj3 = Object(x=8.0, y=4.0, radius=0.5, velocity=[30.0, 0.0], density=1000.0, restitution=0.5, friction=0.5,
-                  color=(50, 50, 255))
-    sim.add_object(obj3)
-    obj4 = Object(x=12.0, y=4.0, radius=0.5, velocity=[30.0, 0.0], density=1000.0, restitution=0.5, friction=0.5,
-                  color=(50, 50, 255))
-    sim.add_object(obj4)
-    obj5 = Object(x=16.0, y=4.0, radius=0.5, velocity=[30.0, 0.0], density=1000.0, restitution=0.5, friction=0.5,
-                  color=(50, 50, 255))
-    sim.add_object(obj5)
-
-    #spring1 = Spring(obj1, obj2, k=25000000.0, d=2000.0)
-    #sim.add_spring(spring1)
-    spring2 = Spring(obj1, obj3, k=2500000.0, d=20000.0)
-    sim.add_spring(spring2)
-    spring3 = Spring(obj3, obj4, k=2500000.0, d=20000.0)
-    sim.add_spring(spring3)
-    spring4 = Spring(obj4, obj5, k=2500000.0, d=20000.0)
-    sim.add_spring(spring4)
-    spring5 = Spring(obj5, obj2, k=2500000.0, d=20000.0)
-    sim.add_spring(spring5)
-
-    obj6 = Object(x=0.0, y=4.0, radius=0.5, velocity=[30.0, 0.0], density=1000.0, restitution=0.5, friction=0.5,
-                  color=(50, 50, 255))
-    sim.add_object(obj6)
-    spring6 = Spring(obj6, obj1, k=2500000.0, d=20000.0)
-    sim.add_spring(spring6)
-
-    obj7 = Object(x=0.0, y=8.0, radius=0.5, velocity=[30.0, 0.0], density=1000.0, restitution=0.5, friction=0.5,
-                  color=(50, 50, 255))
-    sim.add_object(obj7)
-    spring7 = Spring(obj7, obj6, k=2500000.0, d=20000.0)
-    sim.add_spring(spring7)
-    spring8 = Spring(obj7, obj1, k=2500000.0, d=20000.0)
-    sim.add_spring(spring8)
-
-    obj8 = Object(x=4.0, y=8.0, radius=0.5, velocity=[30.0, 0.0], density=1000.0, restitution=0.5, friction=0.5,
-                  color=(50, 50, 255))
-    sim.add_object(obj8)
-    spring9 = Spring(obj8, obj1, k=2500000.0, d=20000.0)
-    sim.add_spring(spring9)
-    spring10 = Spring(obj8, obj6, k=2500000.0, d=20000.0)
-    sim.add_spring(spring10)
-    spring10 = Spring(obj8, obj7, k=2500000.0, d=20000.0)
-    sim.add_spring(spring10)
-
-    obj9 = Object(x=8.0, y=8.0, radius=0.5, velocity=[30.0, 0.0], density=1000.0, restitution=0.5, friction=0.5,
-                  color=(50, 50, 255))
-    sim.add_object(obj9)
-    spring11 = Spring(obj9, obj1, k=2500000.0, d=20000.0)
-    sim.add_spring(spring11)
-    spring12 = Spring(obj8, obj9, k=2500000.0, d=20000.0)
-    sim.add_spring(spring12)
-    spring13 = Spring(obj9, obj3, k=2500000.0, d=20000.0)
-    sim.add_spring(spring13)
-    spring14 = Spring(obj8, obj3, k=2500000.0, d=20000.0)
-    sim.add_spring(spring14)
-
-    obj10 = Object(x=12.0, y=8.0, radius=0.5, velocity=[30.0, 0.0], density=1000.0, restitution=0.5, friction=0.5,
-                  color=(50, 50, 255))
-    sim.add_object(obj10)
-    spring11 = Spring(obj10, obj3, k=2500000.0, d=20000.0)
-    sim.add_spring(spring11)
-    spring12 = Spring(obj10, obj9, k=2500000.0, d=20000.0)
-    sim.add_spring(spring12)
-    spring13 = Spring(obj10, obj4, k=2500000.0, d=20000.0)
-    sim.add_spring(spring13)
-    spring14 = Spring(obj9, obj4, k=2500000.0, d=20000.0)
-    sim.add_spring(spring14)
-
-    obj11 = Object(x=16.0, y=8.0, radius=0.5, velocity=[30.0, 0.0], density=1000.0, restitution=0.5, friction=0.5,
-                  color=(50, 50, 255))
-    sim.add_object(obj11)
-    spring11 = Spring(obj11, obj4, k=2500000.0, d=20000.0)
-    sim.add_spring(spring11)
-    spring12 = Spring(obj11, obj10, k=2500000.0, d=20000.0)
-    sim.add_spring(spring12)
-    spring13 = Spring(obj11, obj5, k=2500000.0, d=20000.0)
-    sim.add_spring(spring13)
-    spring14 = Spring(obj10, obj5, k=2500000.0, d=20000.0)
-    sim.add_spring(spring14)
-
-    obj12 = Object(x=20.0, y=8.0, radius=0.5, velocity=[30.0, 0.0], density=1000.0, restitution=0.5, friction=0.5,
-                  color=(50, 50, 255))
-    sim.add_object(obj12)
-    spring11 = Spring(obj12, obj5, k=2500000.0, d=20000.0)
-    sim.add_spring(spring11)
-    spring12 = Spring(obj12, obj11, k=2500000.0, d=20000.0)
-    sim.add_spring(spring12)
-    spring13 = Spring(obj12, obj2, k=2500000.0, d=20000.0)
-    sim.add_spring(spring13)
-    spring14 = Spring(obj11, obj2, k=2500000.0, d=20000.0)
-    sim.add_spring(spring14)
-
-    obj13 = Object(x=24.0, y=8.0, radius=0.5, velocity=[30.0, 0.0], density=1000.0, restitution=0.5, friction=0.5,
-                  color=(50, 50, 255))
-    sim.add_object(obj13)
-    obj14 = Object(x=24.0, y=4.0, radius=0.5, velocity=[30.0, 0.0], density=1000.0, restitution=0.5, friction=0.5,
-                  color=(50, 50, 255))
-    sim.add_object(obj14)
-    spring11 = Spring(obj13, obj12, k=2500000.0, d=20000.0)
-    sim.add_spring(spring11)
-    spring12 = Spring(obj13, obj14, k=2500000.0, d=20000.0)
-    sim.add_spring(spring12)
-    spring13 = Spring(obj13, obj2, k=2500000.0, d=20000.0)
-    sim.add_spring(spring13)
-    spring14 = Spring(obj14, obj2, k=2500000.0, d=20000.0)
-    sim.add_spring(spring14)
-    spring14 = Spring(obj12, obj14, k=2500000.0, d=20000.0)
-    sim.add_spring(spring14)
-
-    obj15 = Object(x=16.0, y=12.0, radius=0.5, velocity=[30.0, 0.0], density=1000.0, restitution=0.5, friction=0.5,
-                  color=(50, 50, 255))
-    sim.add_object(obj15)
-    spring14 = Spring(obj15, obj12, k=2500000.0, d=20000.0)
-    sim.add_spring(spring14)
-    spring14 = Spring(obj15, obj11, k=2500000.0, d=20000.0)
-    sim.add_spring(spring14)
-    #spring14 = Spring(obj15, obj10, k=2500000.0, d=20000.0)
-    #sim.add_spring(spring14)
-
-    obj16 = Object(x=12.0, y=12.0, radius=0.5, velocity=[30.0, 0.0], density=1000.0, restitution=0.5, friction=0.5,
-                  color=(50, 50, 255))
-    sim.add_object(obj16)
-    spring14 = Spring(obj16, obj15, k=2500000.0, d=20000.0)
-    sim.add_spring(spring14)
-    spring14 = Spring(obj16, obj10, k=2500000.0, d=20000.0)
-    sim.add_spring(spring14)
-    #spring14 = Spring(obj16, obj11, k=2500000.0, d=20000.0)
-    #sim.add_spring(spring14)
-    #spring14 = Spring(obj16, obj9, k=2500000.0, d=20000.0)
-    #sim.add_spring(spring14)
-
-    obj17 = Object(x=8.0, y=12.0, radius=0.5, velocity=[30.0, 0.0], density=1000.0, restitution=0.5, friction=0.5,
-                  color=(50, 50, 255))
-    sim.add_object(obj17)
-    spring14 = Spring(obj17, obj16, k=2500000.0, d=20000.0)
-    sim.add_spring(spring14)
-    spring14 = Spring(obj17, obj9, k=2500000.0, d=20000.0)
-    sim.add_spring(spring14)
-    #spring14 = Spring(obj17, obj10, k=2500000.0, d=20000.0)
-    #sim.add_spring(spring14)
-    spring14 = Spring(obj17, obj8, k=2500000.0, d=20000.0)
-    sim.add_spring(spring14)
-
-
-    # Первый летящий шар
-    #obj1 = Object(x=10.0, y=60.0, radius=2.5, velocity=[40.0, 5.0], density=8700.0, restitution=0.5, friction=0.5,
-    #              color=(0, 180, 255))
-    #sim.add_object(obj1)
-
-    running = True
-    while running:
-        dt = clock.tick(FPS) / 1000.0
-        dt = min(dt, 0.1)
-
+    def handle_events(self, dt: float):
+        """Метод сбора и обработки всех нажатий и системных событий."""
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
-                running = False
+                self.running = False
 
             # Обработка изменения размера окна
             elif event.type == pygame.VIDEORESIZE:
-                # Обновляем глобальные переменные ширины и высоты
-                WIDTH, HEIGHT = event.w, event.h
-                # Пересоздаем поверхность окна (Pygame это требует для корректной работы)
-                screen = pygame.display.set_mode((WIDTH, HEIGHT), pygame.RESIZABLE)
-
-                # Обновляем границы физического мира (VirtualArea), чтобы шары не улетали за новый экран
-                phys_width = WIDTH / SCALE
-                phys_height = HEIGHT / SCALE
-                sim.Area = VirtualArea(0, 0, phys_width, phys_height)
+                self.width, self.height = event.w, event.h
+                self.screen = pygame.display.set_mode((self.width, self.height), pygame.RESIZABLE)
+                phys_width = self.width / self.scale
+                phys_height = self.height / self.scale
+                self.sim.Area = Area(0, 0, phys_width, phys_height)
 
             elif event.type == pygame.MOUSEBUTTONDOWN:
                 mx, my = pygame.mouse.get_pos()
-                phys_mx = mx / SCALE
-                phys_my = (HEIGHT - my) / SCALE
+                phys_mx = mx / self.scale
+                phys_my = (self.height - my) / self.scale
 
-                # Спавним легкие упругие шары с сильным случайным закручиванием и скоростью
                 if event.button == 1:
-                    # Проверяем, кликнули ли мы по существующему объекту
                     clicked_obj = None
-                    for obj in sim.objects:
+                    for obj in self.sim.objects:
                         ox, oy = obj.get_location()
                         dist = math.sqrt((ox - phys_mx) ** 2 + (oy - phys_my) ** 2)
                         if dist <= obj.radius:
@@ -359,23 +206,23 @@ def main():
 
                     if clicked_obj is not None:
                         # Если кликнули на шар
-                        if selected_obj is None:
+                        if self.selected_obj is None:
                             # Выделяем первый шар
-                            selected_obj = clicked_obj
-                        elif selected_obj == clicked_obj:
+                            self.selected_obj = clicked_obj
+                        elif self.selected_obj == clicked_obj:
                             # Кликнули на тот же шар повторно — снимаем выделение
-                            selected_obj = None
+                            self.selected_obj = None
                         else:
                             # Кликнули на другой шар — связываем их балкой!
-                            # Жесткость k = 25000, демпфирование d = 200 (можно настроить)
-                            new_spring = Spring(selected_obj, clicked_obj, k=2500000.0, d=20000.0)
-                            sim.add_spring(new_spring)
-                            selected_obj = None  # Сбрасываем выделение
+                            # Жесткость k = 25000, демпфирование d = 200
+                            new_spring = Spring(self.selected_obj, clicked_obj, k=2500000.0, d=20000.0)
+                            self.sim.add_spring(new_spring)
+                            self.selected_obj = None  # Сбрасываем выделение
                     else:
-                        # Кликнули на пустое место
-                        if selected_obj is not None:
+                        # Кликнули на пустое место. Спавн объекта со случайными характеристиками
+                        if self.selected_obj is not None:
                             # Если что-то было выделено — просто отменяем выбор
-                            selected_obj = None
+                            self.selected_obj = None
                         else:
                             # Спавним новый случайный шар
                             rand_radius = random.uniform(1.0, 2.5)
@@ -396,13 +243,13 @@ def main():
                                 color=rand_color
                             )
                             new_obj.angular_velocity = random.uniform(-30.0, 30.0)
-                            sim.add_object(new_obj)
+                            self.sim.add_object(new_obj)
 
                     # --- ПРАВАЯ КНОПКА МЫШИ (ПКМ) ---
                 elif event.button == 3:
                     # Сбрасываем выделение, чтобы не мешало
-                    selected_obj = None
-                    data = show_spawn_dialog()
+                    self.selected_obj = None
+                    data = self.show_spawn_dialog()
 
                     if data is not None:
                         custom_color = (random.randint(50, 255), random.randint(50, 255), random.randint(50, 255))
@@ -417,62 +264,101 @@ def main():
                             color=custom_color
                         )
                         custom_obj.angular_velocity = data["spin"]
-                        sim.add_object(custom_obj)
+                        self.sim.add_object(custom_obj)
 
-        substeps = 10  # Дробим шаг на 10 частей
-        sub_dt = dt / substeps
-        for _ in range(substeps):
-            sim.step(sub_dt)
+    def update_physics(self, dt: float):
+        """Логика перемещения зажатого объекта мышкой и расчет кадра физики."""
+        # Корректируем положение ДО расчета шага физики
+        if self.selected_obj:
+            mx, my = pygame.mouse.get_pos()
+            phys_mx = mx / SCALE
+            phys_my = (self.height - my) / SCALE
 
-        # Отрисовка
-        screen.fill((25, 25, 30))
+            if dt > 0:
+                self.selected_obj.velocity[0] = (phys_mx - self.selected_obj.location[0]) / dt
+                self.selected_obj.velocity[1] = (phys_my - self.selected_obj.location[1]) / dt
 
-        # 1. Сначала рисуем балки (чтобы они визуально находились ПОД шарами)
-        draw_springs(screen, sim.springs, SCALE, HEIGHT)
+            self.selected_obj.location = [phys_mx, phys_my]
 
-        for obj in sim.objects:
-            phys_x, phys_y = obj.get_location()
-            screen_x = int(phys_x * SCALE)
-            screen_y = int(HEIGHT - (phys_y * SCALE))
+        # Шаг физической симуляции
+        self.sim.step(dt)
 
-            # Получаем базовую текстуру
-            ball_surf = get_ball_surface(obj, SCALE)
+        # Дублируем прижатие ПОСЛЕ расчета шага физики, чтобы убрать дрожание
+        if self.selected_obj:
+            mx, my = pygame.mouse.get_pos()
+            phys_mx = mx / SCALE
+            phys_my = (self.height - my) / SCALE
+            self.selected_obj.location = [phys_mx, phys_my]
 
-            # Поворачиваем текстуру на текущий угол (в Pygame углы в градусах и идут против часовой стрелки)
-            angle_degrees = math.degrees(obj.angle)
-            rotated_surf = pygame.transform.rotate(ball_surf, angle_degrees)
+    def draw_scene(self):
+        """Отрисовывает все графические элементы на экране."""
+        self.screen.fill((30, 30, 30))
 
-            # Находим новый центр после поворота (так как размеры повёрнутой картинки немного увеличиваются)
-            rect = rotated_surf.get_rect(center=(screen_x, screen_y))
-            screen.blit(rotated_surf, rect.topleft)
+        # 1. Отрисовка деформируемых пружин-балок
+        for spring in self.sim.springs:
+            if spring.is_broken:
+                continue
 
-            # Отрисовка подсветки выделенного шара
-            if obj == selected_obj:
-                # Рисуем красивую толстую желтую ауру вокруг выделенного объекта
-                pygame.draw.circle(screen, (255, 215, 0), (screen_x, screen_y), int(obj.radius * SCALE) + 4, 3)
+            p1_x, p1_y = spring.obj1.get_location()
+            p2_x, p2_y = spring.obj2.get_location()
 
-        # Телеметрия
-        font = pygame.font.SysFont("Consolas", 18)
+            start_pos = (int(p1_x * SCALE), int(self.height - (p1_y * SCALE)))
+            end_pos = (int(p2_x * SCALE), int(self.height - (p2_y * SCALE)))
+
+            strain = spring.current_strain
+            factor = min(1.0, abs(strain) / spring.yield_limit)
+
+            if strain > 0:  # Растяжение (Тенденция к красному)
+                color = (int(255 * factor), int(255 * (1 - factor)), 0)
+            else:  # Сжатие (Тенденция к синему)
+                color = (0, int(255 * (1 - factor)), int(255 * factor))
+
+            thickness = max(1, min(8, int(spring.k / 3000)))
+            pygame.draw.line(self.screen, color, start_pos, end_pos, thickness)
+
+        # 2. Отрисовка тяжелых узлов
+        for obj in self.sim.objects:
+            x, y = obj.get_location()
+            screen_x = int(x * SCALE)
+            screen_y = int(self.height - (y * SCALE))
+
+            surf = self.get_ball_surface(obj)
+            draw_radius = surf.get_width() // 2
+            self.screen.blit(surf, (screen_x - draw_radius, screen_y - draw_radius))
+
+        # 3. ТЕЛЕМЕТРИЯ (Теперь работает через сохраненный self.font!)
         telemetry = [
-            f"Time:    {sim.time:.2f}s",
-            f"FPS:     {clock.get_fps():.0f}",
-            f"Balls:   {len(sim.objects)}",
-            f"Springs: {len(sim.springs)}",
+            f"Time:    {self.sim.time:.2f}s",
+            f"FPS:     {self.clock.get_fps():.0f}",
+            f"Nodes:   {len(self.sim.objects)}",
+            f"Beams:   {len(self.sim.springs)}",
             "Controls:",
-            " - LKM on Ball: Select/Connect",
-            " - LKM on Empty Space: Spawn Random",
-            " - PKM on Screen: Custom Spawn Dialog"
+            " - LKM on Node: Select / Link nodes",
+            " - LKM on Space: Spawn Random Node",
+            " - PKM on Space: Custom Node Dialog"
         ]
 
         for i, text_line in enumerate(telemetry):
-            text_surface = font.render(text_line, True, (240, 240, 240))
-            screen.blit(text_surface, (20, 20 + i * 22))
+            text_surface = self.font.render(text_line, True, (240, 240, 240))
+            self.screen.blit(text_surface, (20, 20 + i * 22))
 
         pygame.display.flip()
 
-    pygame.quit()
-    sys.exit()
+    def run(self):
+        """Главный игровой цикл приложения."""
+        while self.running:
+            dt = self.clock.tick(self.fps) / 1000.0
+            dt = min(dt, 0.1)
+
+            self.handle_events(dt)
+            self.update_physics(dt)
+            self.draw_scene()
+
+        pygame.quit()
+        sys.exit()
 
 
 if __name__ == "__main__":
-    main()
+    # Запуск приложения
+    app = SimulationApp(fps=FPS, width=WIDTH, height=HEIGHT, scale=SCALE)
+    app.run()
