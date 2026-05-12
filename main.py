@@ -29,6 +29,7 @@ class SimulationApp:
         self.clock = pygame.time.Clock()
         self.running = True
         self.selected_obj = None
+        self.dragged_obj = None
 
         self.font = pygame.font.SysFont("Consolas", 18)
 
@@ -205,7 +206,7 @@ class SimulationApp:
                             break
 
                     if clicked_obj is not None:
-                        # Если кликнули на шар
+                        self.dragged_obj = clicked_obj
                         if self.selected_obj is None:
                             # Выделяем первый шар
                             self.selected_obj = clicked_obj
@@ -266,29 +267,33 @@ class SimulationApp:
                         custom_obj.angular_velocity = data["spin"]
                         self.sim.add_object(custom_obj)
 
+            elif event.type == pygame.MOUSEBUTTONUP:
+                if event.button == 1:
+                    self.dragged_obj = None
+
     def update_physics(self, dt: float):
         """Логика перемещения зажатого объекта мышкой и расчет кадра физики."""
         # Корректируем положение ДО расчета шага физики
-        if self.selected_obj:
+        if self.dragged_obj:
             mx, my = pygame.mouse.get_pos()
             phys_mx = mx / SCALE
             phys_my = (self.height - my) / SCALE
 
             if dt > 0:
-                self.selected_obj.velocity[0] = (phys_mx - self.selected_obj.location[0]) / dt
-                self.selected_obj.velocity[1] = (phys_my - self.selected_obj.location[1]) / dt
+                self.dragged_obj.velocity[0] = (phys_mx - self.dragged_obj.location[0]) / dt
+                self.dragged_obj.velocity[1] = (phys_my - self.dragged_obj.location[1]) / dt
 
-            self.selected_obj.location = [phys_mx, phys_my]
+            self.dragged_obj.location = [phys_mx, phys_my]
 
         # Шаг физической симуляции
         self.sim.step(dt)
 
         # Дублируем прижатие ПОСЛЕ расчета шага физики, чтобы убрать дрожание
-        if self.selected_obj:
+        if self.dragged_obj:
             mx, my = pygame.mouse.get_pos()
             phys_mx = mx / SCALE
             phys_my = (self.height - my) / SCALE
-            self.selected_obj.location = [phys_mx, phys_my]
+            self.dragged_obj.location = [phys_mx, phys_my]
 
     def draw_scene(self):
         """Отрисовывает все графические элементы на экране."""
@@ -325,6 +330,17 @@ class SimulationApp:
             surf = self.get_ball_surface(obj)
             draw_radius = surf.get_width() // 2
             self.screen.blit(surf, (screen_x - draw_radius, screen_y - draw_radius))
+
+            surf = self.get_ball_surface(obj)
+
+            angle_degrees = math.degrees(obj.angle)
+            rotated_surf = pygame.transform.rotate(surf, angle_degrees)
+
+            rect = rotated_surf.get_rect(center=(screen_x, screen_y))
+            self.screen.blit(rotated_surf, rect.topleft)
+
+            if obj == self.selected_obj:
+                pygame.draw.circle(self.screen, (255, 215, 0), (screen_x, screen_y), int(obj.radius * SCALE) + 4, 3)
 
         # 3. ТЕЛЕМЕТРИЯ (Теперь работает через сохраненный self.font!)
         telemetry = [
