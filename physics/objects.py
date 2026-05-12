@@ -20,7 +20,7 @@ import math
 
 
 class Object:
-    def __init__(self, x, y, radius=10, velocity=[0,0], density=7800, restitution=0.75, friction=0.9, color=(0, 200, 255)):
+    def __init__(self, x, y, radius: float = 10.0, velocity=[0,0], density=7800, restitution=0.75, friction=0.9, color=(0, 200, 255)):
         self.location = [x, y]
         self.velocity = velocity
         self.radius = radius  # Радиус объекта
@@ -40,6 +40,22 @@ class Object:
         self.surface = None  # Текстура шара
         self.on_ground = False  # Флаг контакта с землей
         self.rolling_resistance = 0.01  # Коэффициент сопротивления качению (0.01 - 0.05)
+        self.is_static = False  # Флаг статичного объекта
 
     def get_location(self):
         return self.location
+
+
+class MotorWheel(Object):
+    def __init__(self, x: float, y: float, radius: float = 15.0, power: float = 25.0, **kwargs):
+        super().__init__(x, y, radius=radius, **kwargs)
+
+        self.power = power  # Ускорение вращения (рад/с^2)
+        self.direction = 0  # 0 - стоп, 1 - влево (A), -1 - вправо (D)
+
+        self.friction = 0.95
+
+    def apply_motor(self, dt):
+        """Раскручивает колесо, если включен мотор"""
+        if self.direction != 0:
+            self.angular_velocity += self.direction * self.power * dt

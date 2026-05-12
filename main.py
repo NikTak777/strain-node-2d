@@ -5,7 +5,7 @@ import math
 import tkinter as tk
 from tkinter import messagebox
 from physics.area import Area
-from physics.objects import Object
+from physics.objects import Object, MotorWheel
 from physics.springs import Spring
 from physics.simulation import PhysicSimulation
 
@@ -246,7 +246,25 @@ class SimulationApp:
                             new_obj.angular_velocity = random.uniform(-30.0, 30.0)
                             self.sim.add_object(new_obj)
 
-                    # --- ПРАВАЯ КНОПКА МЫШИ (ПКМ) ---
+                elif event.button == 2:
+                    clicked_obj = None
+                    for obj in self.sim.objects:
+                        ox, oy = obj.get_location()
+                        dist = math.sqrt((ox - phys_mx) ** 2 + (oy - phys_my) ** 2)
+                        if dist <= obj.radius:
+                            clicked_obj = obj
+                            break
+
+                    if clicked_obj is not None:
+                        # Переключаем состояние (Заморозить/Разморозить)
+                        clicked_obj.is_static = not clicked_obj.is_static
+
+                        # Если заморозили — сразу гасим скорость, чтобы он замер
+                        if clicked_obj.is_static:
+                            clicked_obj.velocity = [0.0, 0.0]
+                            clicked_obj.angular_velocity = 0.0
+                        break
+
                 elif event.button == 3:
                     # Сбрасываем выделение, чтобы не мешало
                     self.selected_obj = None
@@ -269,10 +287,33 @@ class SimulationApp:
 
             elif event.type == pygame.MOUSEBUTTONUP:
                 if event.button == 1:
+                    if self.dragged_obj and self.dragged_obj.is_static:
+                        self.dragged_obj.velocity = [0.0, 0.0]
+                        self.dragged_obj.angular_velocity = 0.0
                     self.dragged_obj = None
+
+            elif event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_a:
+                    for obj in self.sim.objects:
+                        if isinstance(obj, MotorWheel):
+                            obj.direction = 1
+                elif event.key == pygame.K_d:
+                    for obj in self.sim.objects:
+                        if isinstance(obj, MotorWheel):
+                            obj.direction = -1
+
+            elif event.type == pygame.KEYUP:
+                if event.key in (pygame.K_a, pygame.K_d):
+                    for obj in self.sim.objects:
+                        if isinstance(obj, MotorWheel):
+                            obj.direction = 0
 
     def update_physics(self, dt: float):
         """Логика перемещения зажатого объекта мышкой и расчет кадра физики."""
+        for obj in self.sim.objects:
+            if isinstance(obj, MotorWheel):
+                obj.apply_motor(dt)
+
         # Корректируем положение ДО расчета шага физики
         if self.dragged_obj:
             mx, my = pygame.mouse.get_pos()
@@ -339,10 +380,13 @@ class SimulationApp:
             rect = rotated_surf.get_rect(center=(screen_x, screen_y))
             self.screen.blit(rotated_surf, rect.topleft)
 
+            if obj.is_static:
+                pygame.draw.circle(self.screen, (255, 50, 50), (screen_x, screen_y), 6)
+                pygame.draw.circle(self.screen, (0, 0, 0), (screen_x, screen_y), 6, 2)
+
             if obj == self.selected_obj:
                 pygame.draw.circle(self.screen, (255, 215, 0), (screen_x, screen_y), int(obj.radius * SCALE) + 4, 3)
 
-        # 3. ТЕЛЕМЕТРИЯ (Теперь работает через сохраненный self.font!)
         telemetry = [
             f"Time:    {self.sim.time:.2f}s",
             f"FPS:     {self.clock.get_fps():.0f}",

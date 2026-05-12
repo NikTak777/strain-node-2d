@@ -73,12 +73,19 @@ class PhysicSimulation:
                     ny = dy / distance
 
                     # 1. РАСТАЛКИВАНИЕ (Устранение взаимного проникновения)
-                    # Корректируем позиции шаров пропорционально их массам (более легкий сдвигается сильнее)
                     overlap = min_dist - distance
-                    total_mass = obj1.mass + obj2.mass
 
-                    ratio1 = obj2.mass / total_mass
-                    ratio2 = obj1.mass / total_mass
+                    # Получение обратных масс (0.0, если объект заморожен)
+                    inv_m1 = 0.0 if getattr(obj1, 'is_static', False) else 1.0 / obj1.mass
+                    inv_m2 = 0.0 if getattr(obj2, 'is_static', False) else 1.0 / obj2.mass
+
+                    sum_inv_m = inv_m1 + inv_m2
+
+                    if sum_inv_m == 0.0:
+                        continue
+
+                    ratio1 = inv_m1 / sum_inv_m
+                    ratio2 = inv_m2 / sum_inv_m
 
                     obj1.location[0] -= nx * overlap * ratio1
                     obj1.location[1] -= ny * overlap * ratio1
@@ -106,21 +113,19 @@ class PhysicSimulation:
                     # Усредненный коэффициент восстановления (отскока)
                     re = (obj1.restitution + obj2.restitution) / 2.0
 
-                    # Величина нормального импульса
-                    inv_m1 = 1.0 / obj1.mass
-                    inv_m2 = 1.0 / obj2.mass
-                    Jn = -(1.0 + re) * rel_vn / (inv_m1 + inv_m2)
+                    # Величина нормального импульса с учетом обратных масс
+                    Jn = -(1.0 + re) * rel_vn / sum_inv_m
 
                     # Обновляем нормальные скорости
                     v1n_new = v1n - Jn * inv_m1
                     v2n_new = v2n + Jn * inv_m2
 
-                    # --- РАСЧЕТ ТРЕНИЯ И ПЕРЕДАЧИ ВРАЩЕНИЯ ---
+                    # --- 3. РАСЧЕТ ТРЕНИЯ И ПЕРЕДАЧИ ВРАЩЕНИЯ ---
                     # Относительная скорость в точке контакта вдоль касательной с учетом вращения обоих шаров
                     v_rel_t = (v2t - obj2.angular_velocity * obj2.radius) - (v1t + obj1.angular_velocity * obj1.radius)
 
                     # Эффективная тангенциальная масса для твердых шаров (множитель 3.5 из-за момента инерции)
-                    inv_eff_mt = (inv_m1 + inv_m2) * 3.5
+                    inv_eff_mt = sum_inv_m * 3.5
                     Jt = -v_rel_t / inv_eff_mt
 
                     # Ограничение трения силой реакции опоры (Закон Кулона: F_тр <= mu * N)
@@ -133,10 +138,15 @@ class PhysicSimulation:
                     v1t_new = v1t - Jt * inv_m1
                     v2t_new = v2t + Jt * inv_m2
 
-                    # Изменение угловых скоростей шаров (знак минус вытекает из геометрии крутящего момента)
-                    obj1.angular_velocity -= (Jt * obj1.radius) / obj1.I
-                    obj2.angular_velocity -= (Jt * obj2.radius) / obj2.I
+                    # Получаем обратные моменты инерции (0.0, если объект заморожен)
+                    inv_I1 = 0.0 if getattr(obj1, 'is_static', False) else 1.0 / obj1.I
+                    inv_I2 = 0.0 if getattr(obj2, 'is_static', False) else 1.0 / obj2.I
 
+                    # Изменение угловых скоростей шаров
+                    obj1.angular_velocity -= (Jt * obj1.radius) * inv_I1
+                    obj2.angular_velocity -= (Jt * obj2.radius) * inv_I2
+
+                    # --- 4. ПРИМЕНЕНИЕ НОВЫХ СКОРОСТЕЙ ---
                     # Собираем векторы конечных скоростей обратно из нормальных и тангенциальных составляющих
                     obj1.velocity[0] = v1n_new * nx + v1t_new * tx
                     obj1.velocity[1] = v1n_new * ny + v1t_new * ty
@@ -145,6 +155,9 @@ class PhysicSimulation:
 
     def resolve_collisions(self, obj: Object):
         """Проверка столкновений для конкретного объекта"""
+        if obj.is_static:
+            return
+
         borders = self.Area.get_border()
         max_x, max_y = borders[0]
         min_x, min_y = borders[1]
@@ -219,7 +232,7 @@ class PhysicSimulation:
 
     def step(self, dt):
         """Просчитывает физику для всех объектов"""
-        # 1. Рассчитываем силы во всех балках и обновляем скорости узлов
+        # Рассчитываем силы во всех балках и обновляем скорости узлов
         for spring in self.springs:
             spring.update(dt)
 
@@ -227,6 +240,12 @@ class PhysicSimulation:
         self.springs = [s for s in self.springs if not s.is_broken]
 
         for obj in self.objects:
+            # Пропускаем замороженные объекты
+            if obj.is_static:
+                obj.velocity = [0.0, 0.0]
+                obj.angular_velocity = 0.0
+                continue
+
             vx = obj.velocity[0]
             vy = obj.velocity[1]
 
