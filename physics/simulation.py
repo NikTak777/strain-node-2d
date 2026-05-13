@@ -17,6 +17,7 @@
 """
 
 import math
+from collections import defaultdict
 from physics.area import Area
 from physics.objects import Object
 from physics.springs import Spring
@@ -55,120 +56,170 @@ class PhysicSimulation:
 
     def resolve_ball_collisions(self):
         """
-        Вычисление и разрешение соударений между всеми парами объектов в симуляции.
-        Игнорирует столкновения между объектами, которые уже соединены балкой.
+        Вычисление и разрешение соударений (Spatial Hashing).
+        Снижает сложность алгоритма с O(N^2) до почти O(N).
         """
-        n = len(self.objects)
-        for i in range(n):
-            for j in range(i + 1, n):
-                obj1 = self.objects[i]
-                obj2 = self.objects[j]
+        if not self.objects:
+            return
 
-                # Проверка наличия связи между объектами
-                connected = False
-                for s in self.springs:
-                    if (s.obj1 == obj1 and s.obj2 == obj2) or (s.obj1 == obj2 and s.obj2 == obj1):
-                        connected = True
-                        break
-                if connected:
-                    continue
+        # Создание множество соединенных пар, поиск мгновенный за O(1)
+        connected_pairs = set()
+        for s in self.springs:
+            id1, id2 = id(s.obj1), id(s.obj2)
+            if id1 > id2: id1, id2 = id2, id1
+            connected_pairs.add((id1, id2))
 
-                # Вектор расстояния между центрами шаров
-                dx = obj2.location[0] - obj1.location[0]
-                dy = obj2.location[1] - obj1.location[1]
-                distance = math.sqrt(dx ** 2 + dy ** 2)
-                min_dist = obj1.radius + obj2.radius
+        # Настройка сетки пространства, ячейки равны диаметру самого большого объекта
+        max_radius = max((obj.radius for obj in self.objects), default=1.0)
+        cell_size = max_radius * 2.1  # Чуть больше диаметра для запаса
 
-                if distance < min_dist:  # Фиксация факта пересечения (столкновения)
-                    if distance == 0:  # Защита от деления на ноль при идеальном совпадении центров
-                        dx = 1.0
-                        dy = 0.0
-                        distance = 1.0
+        if cell_size <= 0:
+            return
 
-                    # Единичный вектор нормали (от obj1 к obj2)
-                    nx = dx / distance
-                    ny = dy / distance
+        # Распределение объектов по ячейкам
+        # Ключ словаря - координаты ячейки (x, y), значение - список объектов в ней
+        grid = defaultdict(list)
+        for obj in self.objects:
+            grid_x = int(obj.location[0] / cell_size)
+            grid_y = int(obj.location[1] / cell_size)
+            grid[(grid_x, grid_y)].append(obj)
 
-                    # Устранение взаимного проникновения)
-                    overlap = min_dist - distance
+        checked_pairs = set()
 
-                    # Получение обратных масс (0.0, если объект заморожен)
-                    inv_m1 = 0.0 if getattr(obj1, 'is_static', False) else 1.0 / obj1.mass
-                    inv_m2 = 0.0 if getattr(obj2, 'is_static', False) else 1.0 / obj2.mass
+        # Проверка самой ячейки и 4 соседние (вправо и вниз). Остальные 4 проверятся сами с другой стороны.
+        neighbor_offsets = [
+            (0, 0),  # Сама ячейка
+            (1, 0),  # Вправо
+            (0, 1),  # Вниз
+            (1, 1),  # Вправо-вниз
+            (-1, 1)  # Влево-вниз
+        ]
 
-                    sum_inv_m = inv_m1 + inv_m2
+        # Проверка столкновений
+        for (gx, gy), cell_objects in grid.items():
+            for obj1 in cell_objects:
+                for dx, dy in neighbor_offsets:
+                    nx, ny = gx + dx, gy + dy
 
-                    if sum_inv_m == 0.0:
+                    # Если соседней ячейки нет в сетке - пропуск
+                    if (nx, ny) not in grid:
                         continue
 
-                    ratio1 = inv_m1 / sum_inv_m
-                    ratio2 = inv_m2 / sum_inv_m
+                    for obj2 in grid[(nx, ny)]:
+                        if obj1 == obj2:
+                            continue
 
-                    obj1.location[0] -= nx * overlap * ratio1
-                    obj1.location[1] -= ny * overlap * ratio1
-                    obj2.location[0] += nx * overlap * ratio2
-                    obj2.location[1] += ny * overlap * ratio2
+                        # Гарантирует уникальный ID пары (меньший ID всегда первый)
+                        id1, id2 = id(obj1), id(obj2)
+                        if id1 > id2:
+                            id1, id2 = id2, id1
+                        pair_id = (id1, id2)
 
-                    # Расчёт импульсов отскока и вращения
-                    # Единичный вектор тангенциали
-                    tx = -ny
-                    ty = nx
+                        # Если эта пара объектов проверена - пропуск
+                        if pair_id in checked_pairs:
+                            continue
+                        checked_pairs.add(pair_id)
 
-                    # Проекции линейных скоростей на нормаль и тангенциаль
-                    v1n = obj1.velocity[0] * nx + obj1.velocity[1] * ny
-                    v1t = obj1.velocity[0] * tx + obj1.velocity[1] * ty
-                    v2n = obj2.velocity[0] * nx + obj2.velocity[1] * ny
-                    v2t = obj2.velocity[0] * tx + obj2.velocity[1] * ty
+                        # Проверяет, не соединены ли они балкой (Мгновенный поиск в Set)
+                        if pair_id in connected_pairs:
+                            continue
 
-                    # Относительная нормальная скорость
-                    rel_vn = v2n - v1n
+                        # Вектор расстояния между центрами шаров
+                        dx = obj2.location[0] - obj1.location[0]
+                        dy = obj2.location[1] - obj1.location[1]
+                        distance = math.sqrt(dx ** 2 + dy ** 2)
+                        min_dist = obj1.radius + obj2.radius
 
-                    # Отмена импульса, если шары уже движутся в разные стороны
-                    if rel_vn >= 0:
-                        continue
+                        if distance < min_dist:  # Фиксация факта пересечения (столкновения)
+                            if distance == 0:  # Защита от деления на ноль при идеальном совпадении центров
+                                dx = 1.0
+                                dy = 0.0
+                                distance = 1.0
 
-                    # Усредненный коэффициент восстановления (отскока)
-                    re = (obj1.restitution + obj2.restitution) / 2.0
+                            # Единичный вектор нормали (от obj1 к obj2)
+                            nx = dx / distance
+                            ny = dy / distance
 
-                    # Величина нормального импульса с учетом обратных масс
-                    Jn = -(1.0 + re) * rel_vn / sum_inv_m
+                            # Устранение взаимного проникновения)
+                            overlap = min_dist - distance
 
-                    # Обновление нормальных скоростей
-                    v1n_new = v1n - Jn * inv_m1
-                    v2n_new = v2n + Jn * inv_m2
+                            # Получение обратных масс (0.0, если объект заморожен)
+                            inv_m1 = 0.0 if getattr(obj1, 'is_static', False) else 1.0 / obj1.mass
+                            inv_m2 = 0.0 if getattr(obj2, 'is_static', False) else 1.0 / obj2.mass
 
-                    # Расчёт трения и передачи вращения
-                    # Относительная скорость в точке контакта вдоль касательной с учетом вращения обоих шаров
-                    v_rel_t = (v2t - obj2.angular_velocity * obj2.radius) - (v1t + obj1.angular_velocity * obj1.radius)
+                            sum_inv_m = inv_m1 + inv_m2
 
-                    # Эффективная тангенциальная масса для твердых шаров (множитель 3.5 из-за момента инерции)
-                    inv_eff_mt = sum_inv_m * 3.5
-                    Jt = -v_rel_t / inv_eff_mt
+                            if sum_inv_m == 0.0:
+                                continue
 
-                    # Ограничение трения силой реакции опоры (Закон Кулона: F_тр <= mu * N)
-                    fr = (obj1.friction + obj2.friction) / 2.0
-                    max_friction = fr * Jn
-                    if abs(Jt) > max_friction:
-                        Jt = math.copysign(max_friction, Jt)
+                            ratio1 = inv_m1 / sum_inv_m
+                            ratio2 = inv_m2 / sum_inv_m
 
-                    # Изменение тангенциальных скоростей
-                    v1t_new = v1t - Jt * inv_m1
-                    v2t_new = v2t + Jt * inv_m2
+                            obj1.location[0] -= nx * overlap * ratio1
+                            obj1.location[1] -= ny * overlap * ratio1
+                            obj2.location[0] += nx * overlap * ratio2
+                            obj2.location[1] += ny * overlap * ratio2
 
-                    # Получение обратных моментов инерции (0.0, если объект заморожен)
-                    inv_I1 = 0.0 if getattr(obj1, 'is_static', False) else 1.0 / obj1.I
-                    inv_I2 = 0.0 if getattr(obj2, 'is_static', False) else 1.0 / obj2.I
+                            # Расчёт импульсов отскока и вращения
+                            # Единичный вектор тангенциали
+                            tx = -ny
+                            ty = nx
 
-                    # Изменение угловых скоростей шаров
-                    obj1.angular_velocity -= (Jt * obj1.radius) * inv_I1
-                    obj2.angular_velocity -= (Jt * obj2.radius) * inv_I2
+                            # Проекции линейных скоростей на нормаль и тангенциаль
+                            v1n = obj1.velocity[0] * nx + obj1.velocity[1] * ny
+                            v1t = obj1.velocity[0] * tx + obj1.velocity[1] * ty
+                            v2n = obj2.velocity[0] * nx + obj2.velocity[1] * ny
+                            v2t = obj2.velocity[0] * tx + obj2.velocity[1] * ty
 
-                    # Применение новых скоростей
-                    # Сборка векторов конечных скоростей обратно из нормальных и тангенциальных составляющих
-                    obj1.velocity[0] = v1n_new * nx + v1t_new * tx
-                    obj1.velocity[1] = v1n_new * ny + v1t_new * ty
-                    obj2.velocity[0] = v2n_new * nx + v2t_new * tx
-                    obj2.velocity[1] = v2n_new * ny + v2t_new * ty
+                            # Относительная нормальная скорость
+                            rel_vn = v2n - v1n
+
+                            # Отмена импульса, если шары уже движутся в разные стороны
+                            if rel_vn >= 0:
+                                continue
+
+                            # Усредненный коэффициент восстановления (отскока)
+                            re = (obj1.restitution + obj2.restitution) / 2.0
+
+                            # Величина нормального импульса с учетом обратных масс
+                            Jn = -(1.0 + re) * rel_vn / sum_inv_m
+
+                            # Обновление нормальных скоростей
+                            v1n_new = v1n - Jn * inv_m1
+                            v2n_new = v2n + Jn * inv_m2
+
+                            # Расчёт трения и передачи вращения
+                            # Относительная скорость в точке контакта вдоль касательной с учетом вращения обоих шаров
+                            v_rel_t = (v2t - obj2.angular_velocity * obj2.radius) - (v1t + obj1.angular_velocity * obj1.radius)
+
+                            # Эффективная тангенциальная масса для твердых шаров (множитель 3.5 из-за момента инерции)
+                            inv_eff_mt = sum_inv_m * 3.5
+                            Jt = -v_rel_t / inv_eff_mt
+
+                            # Ограничение трения силой реакции опоры (Закон Кулона: F_тр <= mu * N)
+                            fr = (obj1.friction + obj2.friction) / 2.0
+                            max_friction = fr * Jn
+                            if abs(Jt) > max_friction:
+                                Jt = math.copysign(max_friction, Jt)
+
+                            # Изменение тангенциальных скоростей
+                            v1t_new = v1t - Jt * inv_m1
+                            v2t_new = v2t + Jt * inv_m2
+
+                            # Получение обратных моментов инерции (0.0, если объект заморожен)
+                            inv_I1 = 0.0 if getattr(obj1, 'is_static', False) else 1.0 / obj1.I
+                            inv_I2 = 0.0 if getattr(obj2, 'is_static', False) else 1.0 / obj2.I
+
+                            # Изменение угловых скоростей шаров
+                            obj1.angular_velocity -= (Jt * obj1.radius) * inv_I1
+                            obj2.angular_velocity -= (Jt * obj2.radius) * inv_I2
+
+                            # Применение новых скоростей
+                            # Сборка векторов конечных скоростей обратно из нормальных и тангенциальных составляющих
+                            obj1.velocity[0] = v1n_new * nx + v1t_new * tx
+                            obj1.velocity[1] = v1n_new * ny + v1t_new * ty
+                            obj2.velocity[0] = v2n_new * nx + v2t_new * tx
+                            obj2.velocity[1] = v2n_new * ny + v2t_new * ty
 
     def resolve_collisions(self, obj: Object):
         """

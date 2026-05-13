@@ -60,6 +60,7 @@ class InputHandler:
 
                 mods = pygame.key.get_mods()
                 is_shift = bool(mods & pygame.KMOD_SHIFT)
+                is_ctrl = bool(mods & pygame.KMOD_CTRL)
 
                 if event.button == 1:  # ЛКМ (Выделение или перетаскивание)
                     clicked_obj = None
@@ -88,15 +89,23 @@ class InputHandler:
                                 break
 
                     if clicked_obj is not None:
-                        # Логика выделения (с Shift и без)
                         if isinstance(clicked_obj, Object):
+                            # Построение балок
+                            if is_ctrl:
+                                # Если у нас уже выделен ровно один узел, и мы кликаем по другому
+                                if len(app.selected_nodes) == 1 and clicked_obj != app.selected_nodes[0]:
+                                    new_spring = Spring(app.selected_nodes[0], clicked_obj, k=20000.0, d=160.0)
+                                    app.sim.add_spring(new_spring)
+                                    app.selected_nodes = [clicked_obj]
+                                    app.selected_springs.clear()
+                            # Логика множественного выделения
                             if is_shift:
                                 if clicked_obj in app.selected_nodes:
                                     app.selected_nodes.remove(clicked_obj)
                                 else:
                                     app.selected_nodes.append(clicked_obj)
+                            # Логика одиночного выделения
                             else:
-                                # Кликнули без шифта по уже выделенному объекту? Оставляем как есть (чтобы можно было потянуть кучу объектов за один)
                                 if clicked_obj not in app.selected_nodes:
                                     app.selected_nodes = [clicked_obj]
                                     app.selected_springs.clear()
@@ -107,7 +116,6 @@ class InputHandler:
                                     app.selected_springs.remove(clicked_obj)
                                 else:
                                     app.selected_springs.append(clicked_obj)
-                                    # Если выделили балку, автоматически выделяем её узлы
                                     if clicked_obj.obj1 not in app.selected_nodes: app.selected_nodes.append(
                                         clicked_obj.obj1)
                                     if clicked_obj.obj2 not in app.selected_nodes: app.selected_nodes.append(

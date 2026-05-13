@@ -17,21 +17,15 @@
 """
 
 import pygame
-import random
 import sys
 import math
-import tkinter as tk
-from tkinter import filedialog
 from physics.area import Area
 from physics.objects import Object, MotorWheel
-from physics.springs import Spring, Rope, Hydraulic
 from physics.simulation import PhysicSimulation
-from physics.serializer import save_scene, load_scene
-from ui.dialogs import show_spawn_dialog, show_edit_dialog
 from ui.inspector import InspectorHUD
 from input_handler import InputHandler
 
-FPS = 160
+FPS = 1000
 SCALE = 80.0
 WIDTH, HEIGHT = 1200, 800
 
