@@ -24,12 +24,15 @@ class Spring:
     def __init__(self, obj1: Object, obj2: Object, k: float = 15000.0, d: float = 150.0,
                  rest_length: float = None, yield_limit: float = 0.15, break_limit: float = 0.35):
         """
-        obj1, obj2: Связанные объекты (узлы)
-        k: Жесткость пружины
-        d: Коэффициент демпфирования (амортизатор)
-        rest_length: Исходная длина (если None, вычисляется автоматически при создании)
-        yield_limit: Предел пластичности (какой % деформации согнет балку навсегда, например 0.15 = 15%)
-        break_limit: Предел разрыва (при каком % деформации балка лопнет)
+        Инициализация стандартной упругой балки (пружины) между двумя физическими узлами.
+
+        :param obj1: Первый привязанный объект (узел)
+        :param obj2: Второй привязанный объект (узел)
+        :param k: Жесткость пружины (Закон Гука). Чем больше, тем сильнее сопротивляется растяжению/сжатию
+        :param d: Коэффициент демпфирования (амортизатор). Гасит колебания системы
+        :param rest_length: Длина покоя (м). Если None, вычисляется автоматически по текущему расстоянию между узлами
+        :param yield_limit: Предел текучести/пластичности (в долях деформации, например 0.15 = 15%). При превышении балка деформируется навсегда
+        :param break_limit: Предел прочности (в долях деформации). При превышении балка лопается и удаляется
         """
         self.obj1 = obj1
         self.obj2 = obj2
@@ -47,9 +50,15 @@ class Spring:
         self.yield_limit = yield_limit
         self.break_limit = break_limit
         self.is_broken = False
-        self.current_strain = 0.0  # Относительная деформация для визуализации
+        self.current_strain = 0.0
 
     def update(self, dt: float):
+        """
+        Вычисляет и применяет физические силы упругости и демпфирования к связанным узлам.
+        Также обрабатывает пластическую деформацию и разрыв балки.
+
+        :param dt: Шаг времени симуляции (с).
+        """
         if self.is_broken:
             return
 
@@ -68,24 +77,21 @@ class Spring:
         # Текущая относительная деформация (положительная - растяжение, отрицательная - сжатие)
         self.current_strain = (L - self.rest_length) / self.rest_length
 
-        # 1. ПРОВЕРКА НА РАЗРЫВ (Разрушение конструкции)
+        # Проверка на разрыв, разрушение конструкции
         if abs(self.current_strain) > self.break_limit:
             self.is_broken = True
             return
 
-        # 2. ПЛАСТИЧЕСКАЯ ДЕФОРМАЦИЯ (Эффект "мятого металла")
-        # Если балка сжата или растянута сильнее предела пластичности, она меняет свою базовую длину
+        # Проверка на пластическую деформацию
         if abs(self.current_strain) > self.yield_limit:
-            # Вычисляем целевую длину, к которой балка деформируется
+            # Целевая длина, к которой балка деформируется
             target_rest = L - math.copysign(self.yield_limit * self.rest_length, self.current_strain)
-            # Металл мнется постепенно (скорость пластического сдвига)
             self.rest_length += (target_rest - self.rest_length) * 0.2
 
-        # 3. РАСЧЕТ СИЛЫ УПРУГОСТИ (Закон Гука)
+        # Расчёт силы упругости (Закон Гука)
         fs = self.k * (L - self.rest_length)
 
-        # 4. РАСЧЕТ СИЛЫ ДЕМПФИРОВАНИЯ (Гашение колебаний)
-        # Нам нужна проекция относительной скорости на ось балки
+        # Расчёт силы демпфирования (Гашение колебаний)
         rvx = self.obj2.velocity[0] - self.obj1.velocity[0]
         rvy = self.obj2.velocity[1] - self.obj1.velocity[1]
         v_damp = rvx * nx + rvy * ny
@@ -98,8 +104,7 @@ class Spring:
         fx = f_total * nx
         fy = f_total * ny
 
-        # Применяем силы к узлам (Ускорение a = F / m, изменение скорости dv = a * dt)
-        # Мы можем закрепить некоторые узлы намертво, добавив им флаг `static = True`
+        # Применение силы к узлам (Ускорение a = F / m, изменение скорости dv = a * dt)
         if not getattr(self.obj1, 'static', False):
             self.obj1.velocity[0] += (fx / self.obj1.mass) * dt
             self.obj1.velocity[1] += (fy / self.obj1.mass) * dt
@@ -109,7 +114,112 @@ class Spring:
             self.obj2.velocity[1] -= (fy / self.obj2.mass) * dt
 
 
-class Hydraulic(Spring):
+class Rope(Spring):
+    def __init__(self, obj1: Object, obj2: Object, k: float = 150000.0, d: float = 500.0, **kwargs):
+        """
+        Инициализация троса (верёвки).
+        Трос работает только на растяжение. При сближении узлов он провисает и не создает сил.
 
-    def change_length(self, new_length):
-        self.rest_length = new_length
+        :param obj1: Первый привязанный объект
+        :param obj2: Второй привязанный объект
+        :param k: Жесткость натяжения троса
+        :param d: Коэффициент демпфирования
+        :param kwargs: Дополнительные параметры базового класса
+        """
+        kwargs.setdefault('yield_limit', float('inf'))
+        super().__init__(obj1, obj2, k=k, d=d, **kwargs)
+
+    def update(self, dt: float):
+        """
+        Вычисляет силы для троса. Отключает расчет, если расстояние меньше длины покоя (провисание).
+
+        :param dt: Шаг времени симуляции (с)
+        """
+        if self.is_broken:
+            return
+
+        dx = self.obj2.location[0] - self.obj1.location[0]
+        dy = self.obj2.location[1] - self.obj1.location[1]
+        L = math.sqrt(dx ** 2 + dy ** 2)
+
+        if L == 0.0:
+            return
+
+        self.current_strain = (L - self.rest_length) / self.rest_length
+
+        # Проверка на разрыв (трос рвётся, если перетянуть)
+        if abs(self.current_strain) > self.break_limit:
+            self.is_broken = True
+            return
+
+        # Если расстояние меньше длины покоя, веревка провисает, силы равны нулю
+        if L <= self.rest_length:
+            return
+
+        nx = dx / L
+        ny = dy / L
+
+        # Закон Гука работает только на растяжение
+        fs = self.k * (L - self.rest_length)
+
+        # Демпфирование
+        rvx = self.obj2.velocity[0] - self.obj1.velocity[0]
+        rvy = self.obj2.velocity[1] - self.obj1.velocity[1]
+        v_damp = rvx * nx + rvy * ny
+        fd = self.d * v_damp
+
+        f_total = fs + fd
+
+        # Веревка не может толкать узлы друг от друга
+        if f_total < 0:
+            f_total = 0
+
+        fx = f_total * nx
+        fy = f_total * ny
+
+        if not getattr(self.obj1, 'is_static', False):
+            self.obj1.velocity[0] += (fx / self.obj1.mass) * dt
+            self.obj1.velocity[1] += (fy / self.obj1.mass) * dt
+
+        if not getattr(self.obj2, 'is_static', False):
+            self.obj2.velocity[0] -= (fx / self.obj2.mass) * dt
+            self.obj2.velocity[1] -= (fy / self.obj2.mass) * dt
+
+
+class Hydraulic(Spring):
+    def __init__(self, obj1, obj2, speed: float = 2.0, min_length: float = 0.5, max_length: float = 5.0, **kwargs):
+        """
+        Инициализация гидравлического цилиндра.
+        Это жесткая балка, способная активно изменять свою базовую длину при подаче сигнала.
+
+        :param obj1: Первый привязанный объект
+        :param obj2: Второй привязанный объект
+        :param speed: Скорость выдвижения/втягивания штока (м/с)
+        :param min_length: Минимально возможная длина цилиндра (м)
+        :param max_length: Максимально возможная длина выдвинутого штока (м)
+        :param kwargs: Дополнительные параметры базового класса
+        """
+        kwargs.setdefault('k', 500000.0)
+        kwargs.setdefault('d', 10000.0)
+        kwargs.setdefault('yield_limit', float('inf'))
+        super().__init__(obj1, obj2, **kwargs)
+
+        self.speed = speed  # Скорость выдвижения штока (м/с)
+        self.min_length = min_length
+        self.max_length = max_length
+        self.activation = 0  # Текущее состояние: -1 (сжатие), 0 (стоп), 1 (выдвижение)
+
+    def update(self, dt: float):
+        """
+        Обновляет длину штока гидравлики и вызывает расчет сил родительского класса Spring.
+
+        :param dt: Шаг времени симуляции (с)
+        """
+        # Изменение базовой длины, если гидравлика активна
+        if self.activation != 0:
+            self.rest_length += self.activation * self.speed * dt
+            # Ограничение хода штока цилиндра
+            self.rest_length = max(self.min_length, min(self.max_length, self.rest_length))
+
+        # Передается управление стандартной физике пружины
+        super().update(dt)

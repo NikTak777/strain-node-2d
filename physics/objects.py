@@ -20,15 +20,28 @@ import math
 
 
 class Object:
-    def __init__(self, x, y, radius: float = 10.0, velocity=[0,0], density=7800, restitution=0.75, friction=0.9, color=(0, 200, 255)):
+    def __init__(self, x: float, y: float, radius: float = 10.0, velocity: list = None, density: float = 7800,
+                 restitution: float = 0.75, friction: float = 0.9, color: tuple = (0, 200, 255)):
+        """
+        Инициализация базового физического объекта (узла).
+
+        :param x: Начальная позиция по оси X (м)
+        :param y: Начальная позиция по оси Y (м)
+        :param radius: Радиус объекта (м)
+        :param velocity: Вектор начальной линейной скорости [vx, vy]
+        :param density: Плотность материала (кг/м³)
+        :param restitution: Коэффициент восстановления энергии при ударе (прыгучесть, от 0.0 до 1.0).
+        :param friction: Коэффициент трения о другие поверхности (от 0.0 до 1.0).
+        :param color: Цвет объекта для отрисовки в формате кортежа RGB (R, G, B).
+        """
         self.location = [x, y]
-        self.velocity = velocity
-        self.radius = radius  # Радиус объекта
-        self.color = color  # Цвет объекта
-        self.density = density  # Плотность объекта
+        self.velocity = velocity if velocity is not None else [0, 0]
+        self.radius = radius
+        self.color = color
+        self.density = density
         self.Cd = 0.47  # Коэффициент сопротивления (для шара)
-        self.restitution = restitution  # Коэффициент восстановления энергии (прыгучесть, от 0 до 1)
-        self.friction = friction  # Трение о стены (сохранение скорости вдоль стены, от 0 до 1)
+        self.restitution = restitution
+        self.friction = friction
         self.angle = 0.0  # Угол поворота в радианах
         self.angular_velocity = 0.0  # Угловая скорость (рад/с)
 
@@ -43,19 +56,36 @@ class Object:
         self.is_static = False  # Флаг статичного объекта
 
     def get_location(self):
+        """
+        Возвращает текущие координаты физического объекта (узла).
+
+        :return: Список из двух чисел [x, y], представляющий положение объекта.
+        :rtype: list[float]
+        """
         return self.location
 
 
 class MotorWheel(Object):
     def __init__(self, x: float, y: float, radius: float = 15.0, power: float = 25.0, **kwargs):
+        """
+        Инициализация моторного колеса (узла с возможностью вращения).
+
+        :param x: Начальная позиция по оси X
+        :param y: Начальная позиция по оси Y
+        :param radius: Радиус колеса (м)
+        :param power: Мощность мотора (ускорение вращения в рад/с²)
+        :param kwargs: Дополнительные параметры для базового класса Object
+        """
         super().__init__(x, y, radius=radius, **kwargs)
 
         self.power = power  # Ускорение вращения (рад/с^2)
-        self.direction = 0  # 0 - стоп, 1 - влево (A), -1 - вправо (D)
-
-        self.friction = 0.95
+        self.direction = 0  # Текущее направление: 0 - стоп, 1 - влево (A), -1 - вправо (D)
 
     def apply_motor(self, dt):
-        """Раскручивает колесо, если включен мотор"""
+        """
+        Прикладывает крутящий момент к колесу, изменяя его угловую скорость.
+
+        :param dt: Шаг времени симуляции (с)
+        """
         if self.direction != 0:
             self.angular_velocity += self.direction * self.power * dt
