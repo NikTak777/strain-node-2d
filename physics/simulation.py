@@ -140,7 +140,7 @@ class PhysicSimulation:
                             nx = dx / distance
                             ny = dy / distance
 
-                            # Устранение взаимного проникновения)
+                            # Устранение взаимного проникновения
                             overlap = min_dist - distance
 
                             # Получение обратных масс (0.0, если объект заморожен)
@@ -224,6 +224,7 @@ class PhysicSimulation:
     def resolve_collisions(self, obj: Object):
         """
         Обработка столкновений конкретного объекта с внешними границами симуляции (Area).
+        Включает модель сухого трения Кулона (Статика и Кинетика).
 
         :param obj: Физический объект для проверки
         """
@@ -236,13 +237,16 @@ class PhysicSimulation:
 
         ra = obj.radius
         re = obj.restitution
-        fr = obj.friction
         m = obj.mass
         I = obj.I
 
+        # Коэффициенты трения (кинетическое по умолчанию составляет 75% от статического)
+        mu_s = obj.friction
+        mu_k = getattr(obj, 'friction_kinetic', mu_s * 0.75)
+
         def apply_contact_physics(normal_axis: int, normal_dir: int):
             """
-            Применение физики удара и трения для конкретной стены.
+            Применение физики удара и трения Кулона для конкретной стены.
 
             :param normal_axis: 0 для вертикальных стен (X), 1 для горизонтальных (Y)
             :param normal_dir: Направление нормали от стены к центру шара (+1 или -1)
@@ -265,13 +269,21 @@ class PhysicSimulation:
             # Нормальный импульс удара
             P_n = m * abs(v_n) * (1 + re)
 
-            # Тангенциальный импульс, необходимый для полной остановки скольжения (качение)
-            J_t = - m * v_rel_t / 3.5
+            # Идеальный тангенциальный импульс, необходимый для полной остановки скольжения
+            J_t = -m * v_rel_t / 3.5
 
-            # Ограничение трения силой реакции опоры (закон Кулона: F_тр <= mu * N)
-            max_friction_impulse = fr * P_n
-            if abs(J_t) > max_friction_impulse:
-                J_t = math.copysign(max_friction_impulse, J_t)
+            # Трение кулона
+            max_static_impulse = mu_s * P_n
+
+            if abs(J_t) <= max_static_impulse:
+                # Импульс меньше предела статического трения.
+                # Сцепления хватает, объект "цепляется" за поверхность и переходит в чистое качение.
+                pass
+            else:
+                # Предел превышен, колесо срывается в скольжение (букс).
+                # Применяется меньший импульс кинетического (динамического) трения.
+                max_kinetic_impulse = mu_k * P_n
+                J_t = math.copysign(max_kinetic_impulse, J_t)
 
             # Изменяем линейную скорость вдоль стены
             obj.velocity[t_axis] += J_t / m
