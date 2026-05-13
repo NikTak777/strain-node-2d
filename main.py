@@ -58,10 +58,17 @@ class SimulationApp:
 
         self.clock = pygame.time.Clock()
         self.running = True
-        self.selected_obj = None
         self.dragged_obj = None
         self.drag_offset = [0.0, 0.0]
         self.clipboard = None  # Буфер обмена
+
+        self.selected_nodes = []  # Список выделенных узлов
+        self.selected_springs = []  # Список выделенных балок
+
+        # Переменные для выделения рамкой
+        self.is_selecting = False
+        self.selection_start = (0, 0)
+        self.selection_current = (0, 0)
 
         self.is_paused = False
         self.time_scale = 1.0  # От 0.1 до 1.0
@@ -210,20 +217,18 @@ class SimulationApp:
         """
         self.screen.fill((30, 30, 30))
 
-        # Отрисовка деформируемых пружин-балок
+        # Отрисовка балок
         for spring in self.sim.springs:
             if spring.is_broken:
                 continue
 
             p1_x, p1_y = spring.obj1.get_location()
             p2_x, p2_y = spring.obj2.get_location()
-
             start_pos = (int(p1_x * self.scale), int(self.height - (p1_y * self.scale)))
             end_pos = (int(p2_x * self.scale), int(self.height - (p2_y * self.scale)))
 
             strain = spring.current_strain
             factor = min(1.0, abs(strain) / spring.yield_limit)
-
             if strain > 0:  # Растяжение (Тенденция к красному)
                 color = (int(255 * factor), int(255 * (1 - factor)), 0)
             else:  # Сжатие (Тенденция к синему)
@@ -232,10 +237,10 @@ class SimulationApp:
             thickness = max(1, min(8, int(spring.k / 3000)))
             pygame.draw.line(self.screen, color, start_pos, end_pos, thickness)
 
-            if spring == self.selected_obj:
+            if spring in self.selected_springs:
                 pygame.draw.line(self.screen, (255, 215, 0), start_pos, end_pos, thickness + 4)
 
-        # Отрисовка тяжелых узлов
+        # Отрисовка узлов
         for obj in self.sim.objects:
             x, y = obj.get_location()
             screen_x = int(x * self.scale)
@@ -255,8 +260,19 @@ class SimulationApp:
                 pygame.draw.circle(self.screen, (255, 50, 50), (screen_x, screen_y), 6)
                 pygame.draw.circle(self.screen, (0, 0, 0), (screen_x, screen_y), 6, 2)
 
-            if obj == self.selected_obj:
+            if obj in self.selected_nodes:
                 pygame.draw.circle(self.screen, (255, 215, 0), (screen_x, screen_y), int(obj.radius * SCALE) + 4, 3)
+
+        # Отрисовка рамки выделения
+        if self.is_selecting:
+            x1, y1 = self.selection_start
+            x2, y2 = self.selection_current
+            rect = pygame.Rect(min(x1, x2), min(y1, y2), abs(x2 - x1), abs(y2 - y1))
+
+            s = pygame.Surface((rect.width, rect.height), pygame.SRCALPHA)
+            s.fill((50, 150, 255, 40))
+            self.screen.blit(s, rect.topleft)
+            pygame.draw.rect(self.screen, (100, 200, 255), rect, 1)
 
         telemetry = [
             f"Time:    {self.sim.time:.2f}s",
@@ -271,8 +287,10 @@ class SimulationApp:
             text_surface = self.font.render(text_line, True, color)
             self.screen.blit(text_surface, (20, 20 + i * 22))
 
-        if self.selected_obj is not None:
-            self.inspector.draw(self.screen, self.selected_obj, self.scale, self.width, self.height)
+        if len(self.selected_nodes) == 1 and len(self.selected_springs) == 0:
+            self.inspector.draw(self.screen, self.selected_nodes[0], self.scale, self.width, self.height)
+        elif len(self.selected_springs) == 1 and len(self.selected_nodes) == 0:
+            self.inspector.draw(self.screen, self.selected_springs[0], self.scale, self.width, self.height)
 
         pygame.display.flip()
 

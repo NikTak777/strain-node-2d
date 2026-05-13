@@ -52,13 +52,16 @@ class InputHandler:
                 app.sim.Area.borders = [[max(phys_width, 0), max(phys_height, 0)],
                                         [min(phys_width, 0), min(phys_height, 0)]]
 
-            # --- НАЖАТИЯ МЫШИ ---
+            # Обработка событий мыши
             elif event.type == pygame.MOUSEBUTTONDOWN:
                 mx, my = pygame.mouse.get_pos()
                 phys_mx = mx / app.scale
                 phys_my = (app.height - my) / app.scale
 
-                if event.button == 1:  # ЛКМ
+                mods = pygame.key.get_mods()
+                is_shift = bool(mods & pygame.KMOD_SHIFT)
+
+                if event.button == 1:  # ЛКМ (Выделение или перетаскивание)
                     clicked_obj = None
                     for obj in app.sim.objects:
                         ox, oy = obj.get_location()
@@ -85,19 +88,37 @@ class InputHandler:
                                 break
 
                     if clicked_obj is not None:
-                        if isinstance(app.selected_obj, Object) and isinstance(clicked_obj,
-                                                                               Object) and app.selected_obj != clicked_obj:
-                            new_spring = Spring(app.selected_obj, clicked_obj, k=20000.0, d=160.0)
-                            app.sim.add_spring(new_spring)
-                            app.selected_obj = None
-                        else:
-                            if app.selected_obj == clicked_obj:
-                                app.selected_obj = None
+                        # Логика выделения (с Shift и без)
+                        if isinstance(clicked_obj, Object):
+                            if is_shift:
+                                if clicked_obj in app.selected_nodes:
+                                    app.selected_nodes.remove(clicked_obj)
+                                else:
+                                    app.selected_nodes.append(clicked_obj)
                             else:
-                                app.selected_obj = clicked_obj
+                                # Кликнули без шифта по уже выделенному объекту? Оставляем как есть (чтобы можно было потянуть кучу объектов за один)
+                                if clicked_obj not in app.selected_nodes:
+                                    app.selected_nodes = [clicked_obj]
+                                    app.selected_springs.clear()
+
+                        elif isinstance(clicked_obj, Spring):
+                            if is_shift:
+                                if clicked_obj in app.selected_springs:
+                                    app.selected_springs.remove(clicked_obj)
+                                else:
+                                    app.selected_springs.append(clicked_obj)
+                                    # Если выделили балку, автоматически выделяем её узлы
+                                    if clicked_obj.obj1 not in app.selected_nodes: app.selected_nodes.append(
+                                        clicked_obj.obj1)
+                                    if clicked_obj.obj2 not in app.selected_nodes: app.selected_nodes.append(
+                                        clicked_obj.obj2)
+                            else:
+                                app.selected_springs = [clicked_obj]
+                                app.selected_nodes = [clicked_obj.obj1, clicked_obj.obj2]
                     else:
-                        if app.selected_obj is not None:
-                            app.selected_obj = None
+                        if not is_shift:
+                            app.selected_nodes.clear()
+                            app.selected_springs.clear()
                         else:
                             rand_radius = random.uniform(0.15, 1.0)
                             rand_velocity = [random.uniform(-10, 10), random.uniform(-10, 10)]
@@ -108,32 +129,25 @@ class InputHandler:
                             app.sim.add_object(new_obj)
 
                 elif event.button == 2:  # СКМ
-                    clicked_obj = None
-                    for obj in app.sim.objects:
-                        ox, oy = obj.get_location()
-                        dist = math.sqrt((ox - phys_mx) ** 2 + (oy - phys_my) ** 2)
-                        if dist <= obj.radius:
-                            clicked_obj = obj
-                            break
-                    if clicked_obj is not None:
-                        clicked_obj.is_static = not clicked_obj.is_static
-                        if clicked_obj.is_static:
-                            clicked_obj.velocity = [0.0, 0.0]
-                            clicked_obj.angular_velocity = 0.0
+                    # Если кликнули СКМ, то замораживаем/размораживаем ВСЕ выделенные объекты
+                    for node in app.selected_nodes:
+                        node.is_static = not node.is_static
+                        if node.is_static:
+                            node.velocity = [0.0, 0.0]
+                            node.angular_velocity = 0.0
 
-                elif event.button == 3:  # ПКМ
-                    app.selected_obj = None
-                    data = show_spawn_dialog()
-                    if data is not None:
-                        target_class = MotorWheel if data["type"] == "Моторное колесо" else Object
-                        custom_obj = target_class(x=phys_mx, y=phys_my, radius=data["radius"],
-                                                  velocity=[data["vx"], data["vy"]], density=data["density"],
-                                                  restitution=data["restitution"], friction=data["friction"],
-                                                  color=(200, 200, 200))
-                        custom_obj.angular_velocity = data["spin"]
-                        if isinstance(custom_obj, MotorWheel):
-                            custom_obj.power = data["power"]
-                        app.sim.add_object(custom_obj)
+
+                elif event.button == 3:  # ПКМ (Начало выделения рамкой)
+                    app.is_selecting = True
+                    app.selection_start = pygame.mouse.get_pos()
+                    app.selection_current = pygame.mouse.get_pos()
+                    if not is_shift:
+                        app.selected_nodes.clear()
+                        app.selected_springs.clear()
+
+            elif event.type == pygame.MOUSEMOTION:
+                if app.is_selecting:
+                    app.selection_current = event.pos
 
             elif event.type == pygame.MOUSEBUTTONUP:
                 if event.button == 1:
@@ -142,7 +156,39 @@ class InputHandler:
                         app.dragged_obj.angular_velocity = 0.0
                     app.dragged_obj = None
 
-            # --- НАЖАТИЯ КЛАВИАТУРЫ ---
+                elif event.button == 3:  # ПКМ (Конец выделения рамкой)
+                    app.is_selecting = False
+                    x1, y1 = app.selection_start
+                    x2, y2 = event.pos
+
+                    # Защита от случайного клика (рамка должна быть хотя бы 5 пикселей)
+                    if abs(x2 - x1) > 5 and abs(y2 - y1) > 5:
+                        min_x, max_x = min(x1, x2), max(x1, x2)
+                        min_y, max_y = min(y1, y2), max(y1, y2)
+
+                        # Перевод экранной рамки в физические координаты
+                        phys_min_x, phys_max_x = min_x / app.scale, max_x / app.scale
+                        phys_min_y = (app.height - max_y) / app.scale
+                        phys_max_y = (app.height - min_y) / app.scale
+
+                        # Поиск всех узлов внутри рамки
+                        for obj in app.sim.objects:
+                            ox, oy = obj.get_location()
+                            if phys_min_x <= ox <= phys_max_x and phys_min_y <= oy <= phys_max_y:
+                                if obj not in app.selected_nodes:
+                                    app.selected_nodes.append(obj)
+
+                        # Поиск всех балок внутри рамки (упрощенно: если центр балки в рамке, выделяем её)
+                        for spring in app.sim.springs:
+                            ox = (spring.obj1.location[0] + spring.obj2.location[0]) / 2
+                            oy = (spring.obj1.location[1] + spring.obj2.location[1]) / 2
+                            if phys_min_x <= ox <= phys_max_x and phys_min_y <= oy <= phys_max_y:
+                                if spring not in app.selected_springs:
+                                    app.selected_springs.append(spring)
+                                    if spring.obj1 not in app.selected_nodes: app.selected_nodes.append(spring.obj1)
+                                    if spring.obj2 not in app.selected_nodes: app.selected_nodes.append(spring.obj2)
+
+            # Обработка нажатий клавиш на клавиатуре
             elif event.type == pygame.KEYDOWN:
 
                 # Управление временем (НОВОЕ)
@@ -173,10 +219,11 @@ class InputHandler:
 
                 # Смена типов балок
                 elif event.key in (pygame.K_1, pygame.K_2, pygame.K_3):
-                    if isinstance(app.selected_obj, Spring):
-                        obj1, obj2 = app.selected_obj.obj1, app.selected_obj.obj2
-                        if app.selected_obj in app.sim.springs:
-                            app.sim.springs.remove(app.selected_obj)
+                    if len(app.selected_springs) == 1:
+                        target_spring = app.selected_springs[0]
+                        obj1, obj2 = target_spring.obj1, target_spring.obj2
+                        if target_spring in app.sim.springs:
+                            app.sim.springs.remove(target_spring)
 
                         new_link = None
                         if event.key == pygame.K_1:
@@ -188,7 +235,7 @@ class InputHandler:
 
                         if new_link:
                             app.sim.add_spring(new_link)
-                            app.selected_obj = new_link
+                            app.selected_springs = [new_link]
 
                 # Сохранение / Загрузка
                 elif event.key == pygame.K_F5:
@@ -211,83 +258,156 @@ class InputHandler:
 
                 # Редактирование (E)
                 elif event.key == pygame.K_e:
-                    if app.selected_obj is not None:
-                        new_data = show_edit_dialog(app.selected_obj)
+                    target = None
+                    if len(app.selected_nodes) == 1 and len(app.selected_springs) == 0:
+                        target = app.selected_nodes[0]
+                    elif len(app.selected_springs) == 1 and len(app.selected_nodes) == 0:
+                        target = app.selected_springs[0]
+
+                    if target is not None:
+                        new_data = show_edit_dialog(target)
                         if new_data:
-                            if isinstance(app.selected_obj, Object):
-                                app.selected_obj.radius = new_data["radius"]
-                                app.selected_obj.density = new_data["density"]
-                                app.selected_obj.restitution = new_data["restitution"]
-                                app.selected_obj.friction = new_data["friction"]
-                                if "power" in new_data: app.selected_obj.power = new_data["power"]
-                                volume = (4.0 / 3.0) * math.pi * (app.selected_obj.radius ** 3)
-                                app.selected_obj.mass = app.selected_obj.density * volume
-                                app.selected_obj.I = 0.4 * app.selected_obj.mass * (app.selected_obj.radius ** 2)
-                                app.selected_obj.surface = None
-                            elif isinstance(app.selected_obj, Spring):
-                                app.selected_obj.k = new_data["k"]
-                                app.selected_obj.d = new_data["d"]
-                                app.selected_obj.yield_limit = new_data["yield_limit"]
-                                app.selected_obj.rest_length = new_data["rest_length"]
+                            if isinstance(target, Object):
+                                target.radius = new_data["radius"]
+                                target.density = new_data["density"]
+                                target.restitution = new_data["restitution"]
+                                target.friction = new_data["friction"]
+                                if "power" in new_data: target.power = new_data["power"]
+                                volume = (4.0 / 3.0) * math.pi * (target.radius ** 3)
+                                target.mass = target.density * volume
+                                target.I = 0.4 * target.mass * (target.radius ** 2)
+                                target.surface = None
+                            elif isinstance(target, Spring):
+                                target.k = new_data["k"]
+                                target.d = new_data["d"]
+                                target.yield_limit = new_data["yield_limit"]
+                                target.rest_length = new_data["rest_length"]
 
                 elif event.key == pygame.K_DELETE:
-                    if app.selected_obj is not None:
-                        if isinstance(app.selected_obj, Spring):
-                            if app.selected_obj in app.sim.springs:
-                                app.sim.springs.remove(app.selected_obj)
-                        elif isinstance(app.selected_obj, Object):
-                            app.sim.springs = [
-                                s for s in app.sim.springs
-                                if s.obj1 != app.selected_obj and s.obj2 != app.selected_obj
-                            ]
-                            if app.selected_obj in app.sim.objects:
-                                app.sim.objects.remove(app.selected_obj)
-                        app.selected_obj = None
+                    for spring in app.selected_springs:
+                        if spring in app.sim.springs:
+                            app.sim.springs.remove(spring)
+                    for node in app.selected_nodes:
+                        app.sim.springs = [s for s in app.sim.springs if s.obj1 != node and s.obj2 != node]
+                        if node in app.sim.objects:
+                            app.sim.objects.remove(node)
+
+                    app.selected_nodes.clear()
+                    app.selected_springs.clear()
+
 
                 mods = pygame.key.get_mods()
                 is_ctrl = bool(mods & pygame.KMOD_CTRL)
 
-                # --- КОПИРОВАНИЕ (Ctrl + C) ---
+                # Копирование объектов (Ctrl + C)
                 if event.key == pygame.K_c and is_ctrl:
-                    if isinstance(app.selected_obj, Object):
+                    if len(app.selected_nodes) > 0:
+                        # Находим "центр масс" выделенной геометрии
+                        cx = sum(n.location[0] for n in app.selected_nodes) / len(app.selected_nodes)
+                        cy = sum(n.location[1] for n in app.selected_nodes) / len(app.selected_nodes)
+
+                        clipboard_nodes = []
+                        node_to_id = {}  # Карта: Объект -> Временный ID
+
+                        # Сохраняем узлы
+                        for i, node in enumerate(app.selected_nodes):
+                            node_to_id[node] = i  # Запоминаем ID этого узла
+                            node_data = {
+                                "class": node.__class__,
+                                "rel_x": node.location[0] - cx,  # Сохраняем координату ОТНОСИТЕЛЬНО центра
+                                "rel_y": node.location[1] - cy,
+                                "radius": node.radius,
+                                "density": node.density,
+                                "restitution": node.restitution,
+                                "friction": node.friction,
+                                "color": node.color,
+                                "is_static": getattr(node, 'is_static', False)
+                            }
+                            if isinstance(node, MotorWheel):
+                                node_data["power"] = node.power
+                            clipboard_nodes.append(node_data)
+
+                        clipboard_springs = []
+                        # Сохраняем балки (только те, чьи оба узла выделены)
+                        for spring in app.sim.springs:
+                            if spring.obj1 in node_to_id and spring.obj2 in node_to_id:
+                                spring_data = {
+                                    "class": spring.__class__,
+                                    "id1": node_to_id[spring.obj1],  # Запоминаем, какие временные ID она соединяет
+                                    "id2": node_to_id[spring.obj2],
+                                    "k": spring.k,
+                                    "d": spring.d,
+                                    "yield_limit": spring.yield_limit,
+                                    "break_limit": spring.break_limit,
+                                    "rest_length": spring.rest_length
+                                }
+                                if isinstance(spring, Hydraulic):
+                                    spring_data["speed"] = spring.speed
+                                    spring_data["min_length"] = spring.min_length
+                                    spring_data["max_length"] = spring.max_length
+                                clipboard_springs.append(spring_data)
+
                         app.clipboard = {
-                            "class": app.selected_obj.__class__,
-                            "radius": app.selected_obj.radius,
-                            "density": app.selected_obj.density,
-                            "restitution": app.selected_obj.restitution,
-                            "friction": app.selected_obj.friction,
-                            "color": app.selected_obj.color,
-                            "is_static": getattr(app.selected_obj, 'is_static', False)
+                            "nodes": clipboard_nodes,
+                            "springs": clipboard_springs
                         }
-                        if isinstance(app.selected_obj, MotorWheel):
-                            app.clipboard["power"] = app.selected_obj.power
+                        print(f"Скопировано узлов: {len(clipboard_nodes)}, балок: {len(clipboard_springs)}")
 
-                        print(f"Скопирован объект: {app.clipboard['class'].__name__}")
-
-                # --- ВСТАВКА (Ctrl + V) ---
+                    # --- НОВОЕ: СТРУКТУРНАЯ ВСТАВКА (Ctrl + V) ---
                 elif event.key == pygame.K_v and is_ctrl:
-                    if app.clipboard is not None:
+                    if app.clipboard is not None and "nodes" in app.clipboard:
                         mx, my = pygame.mouse.get_pos()
                         phys_mx = mx / app.scale
                         phys_my = (app.height - my) / app.scale
 
-                        target_class = app.clipboard["class"]
-                        new_obj = target_class(
-                            x=phys_mx,
-                            y=phys_my,
-                            radius=app.clipboard["radius"],
-                            velocity=[0.0, 0.0],
-                            density=app.clipboard["density"],
-                            restitution=app.clipboard["restitution"],
-                            friction=app.clipboard["friction"],
-                            color=app.clipboard["color"]
-                        )
-                        new_obj.is_static = app.clipboard["is_static"]
-                        if issubclass(target_class, MotorWheel):
-                            new_obj.power = app.clipboard["power"]
+                        new_nodes = []
 
-                        app.sim.add_object(new_obj)
-                        app.selected_obj = new_obj
+                        # Сбрасываем старое выделение, чтобы выделить вставленную структуру
+                        app.selected_nodes.clear()
+                        app.selected_springs.clear()
+
+                        # 1. Спавним все новые узлы
+                        for node_data in app.clipboard["nodes"]:
+                            target_class = node_data["class"]
+                            new_obj = target_class(
+                                x=phys_mx + node_data["rel_x"],
+                                y=phys_my + node_data["rel_y"],
+                                radius=node_data["radius"],
+                                velocity=[0.0, 0.0],
+                                density=node_data["density"],
+                                restitution=node_data["restitution"],
+                                friction=node_data["friction"],
+                                color=node_data["color"]
+                            )
+                            new_obj.is_static = node_data["is_static"]
+                            if issubclass(target_class, MotorWheel):
+                                new_obj.power = node_data.get("power", 25.0)
+
+                            app.sim.add_object(new_obj)
+                            new_nodes.append(new_obj)
+                            app.selected_nodes.append(new_obj)
+
+                        # 2. Спавним балки и привязываем их к НОВЫМ узлам по сохраненным ID
+                        for spring_data in app.clipboard["springs"]:
+                            target_class = spring_data["class"]
+                            obj1 = new_nodes[spring_data["id1"]]
+                            obj2 = new_nodes[spring_data["id2"]]
+
+                            new_spring = target_class(
+                                obj1, obj2,
+                                k=spring_data["k"],
+                                d=spring_data["d"],
+                                yield_limit=spring_data["yield_limit"],
+                                break_limit=spring_data["break_limit"],
+                                rest_length=spring_data["rest_length"]
+                            )
+                            if issubclass(target_class, Hydraulic):
+                                new_spring.speed = spring_data.get("speed", 2.0)
+                                new_spring.min_length = spring_data.get("min_length", 0.5)
+                                new_spring.max_length = spring_data.get("max_length", 5.0)
+
+                            app.sim.add_spring(new_spring)
+                            app.selected_springs.append(new_spring)
 
             # Отпускание клавиш (остановка моторов и гидравлики)
             elif event.type == pygame.KEYUP:
