@@ -1,0 +1,1858 @@
+{
+    "objects": [
+        {
+            "id": 0,
+            "type": "MotorWheel",
+            "x": 4.694816346291611,
+            "y": 0.4,
+            "radius": 0.4,
+            "velocity": [
+                1.0085250818295904e-12,
+                0.022542655070151667
+            ],
+            "density": 100.0,
+            "restitution": 0.5,
+            "friction": 0.8,
+            "color": [
+                255,
+                50,
+                50
+            ],
+            "is_static": false,
+            "angle": 1.7640694899542895,
+            "angular_velocity": -2.5213127045739754e-12,
+            "power": 300.0
+        },
+        {
+            "id": 1,
+            "type": "Object",
+            "x": 3.5490197452509546,
+            "y": 0.4,
+            "radius": 0.4,
+            "velocity": [
+                2.9615105074440563e-05,
+                0.0263357194049402
+            ],
+            "density": 100.0,
+            "restitution": 0.5,
+            "friction": 0.8,
+            "color": [
+                255,
+                50,
+                50
+            ],
+            "is_static": false,
+            "angle": 2.41748387308333,
+            "angular_velocity": -7.403776268610139e-05
+        },
+        {
+            "id": 2,
+            "type": "Object",
+            "x": 10.370751346005664,
+            "y": 0.4,
+            "radius": 0.4,
+            "velocity": [
+                6.4326474628512426e-12,
+                0.03315171782231638
+            ],
+            "density": 100.0,
+            "restitution": 0.5,
+            "friction": 0.8,
+            "color": [
+                255,
+                50,
+                50
+            ],
+            "is_static": false,
+            "angle": 5.932542739903428,
+            "angular_velocity": -1.60816186571281e-11
+        },
+        {
+            "id": 3,
+            "type": "Object",
+            "x": 3.4939198653292,
+            "y": 1.1157507261522353,
+            "radius": 0.1,
+            "velocity": [
+                1.042017336055069e-05,
+                0.0003554609486595313
+            ],
+            "density": 7500.0,
+            "restitution": 0.5,
+            "friction": 0.5,
+            "color": [
+                50,
+                50,
+                255
+            ],
+            "is_static": false,
+            "angle": 0.0,
+            "angular_velocity": 0.0
+        },
+        {
+            "id": 4,
+            "type": "Object",
+            "x": 4.107698756830991,
+            "y": 1.119497496264144,
+            "radius": 0.1,
+            "velocity": [
+                -0.0005317707581986208,
+                0.0003672721485411968
+            ],
+            "density": 7500.0,
+            "restitution": 0.5,
+            "friction": 0.5,
+            "color": [
+                50,
+                50,
+                255
+            ],
+            "is_static": false,
+            "angle": 0.0,
+            "angular_velocity": 0.0
+        },
+        {
+            "id": 5,
+            "type": "Object",
+            "x": 4.683176443547295,
+            "y": 1.1177698855100486,
+            "radius": 0.1,
+            "velocity": [
+                -0.00137702130880742,
+                0.0005436164691547596
+            ],
+            "density": 7500.0,
+            "restitution": 0.5,
+            "friction": 0.5,
+            "color": [
+                50,
+                50,
+                255
+            ],
+            "is_static": false,
+            "angle": 0.0,
+            "angular_velocity": 0.0
+        },
+        {
+            "id": 6,
+            "type": "Object",
+            "x": 5.3587945217426505,
+            "y": 0.7687864578167258,
+            "radius": 0.1,
+            "velocity": [
+                0.0004837355764740647,
+                -0.00015357267670458932
+            ],
+            "density": 7500.0,
+            "restitution": 0.5,
+            "friction": 0.5,
+            "color": [
+                50,
+                50,
+                255
+            ],
+            "is_static": false,
+            "angle": 0.0,
+            "angular_velocity": 0.0
+        },
+        {
+            "id": 7,
+            "type": "Object",
+            "x": 2.8472906123504305,
+            "y": 0.7009461258975919,
+            "radius": 0.1,
+            "velocity": [
+                -0.0007662431897221359,
+                -0.0006878612859410049
+            ],
+            "density": 7500.0,
+            "restitution": 0.5,
+            "friction": 0.5,
+            "color": [
+                50,
+                50,
+                255
+            ],
+            "is_static": false,
+            "angle": 0.0,
+            "angular_velocity": 0.0
+        },
+        {
+            "id": 8,
+            "type": "Object",
+            "x": 2.8556395036744777,
+            "y": 0.17459371971503385,
+            "radius": 0.1,
+            "velocity": [
+                -0.0003330337762887774,
+                -0.0006295727310090225
+            ],
+            "density": 7500.0,
+            "restitution": 0.5,
+            "friction": 0.5,
+            "color": [
+                50,
+                50,
+                255
+            ],
+            "is_static": false,
+            "angle": 0.0,
+            "angular_velocity": 0.0
+        },
+        {
+            "id": 9,
+            "type": "Object",
+            "x": 5.3935765922729635,
+            "y": 0.19173623173336177,
+            "radius": 0.1,
+            "velocity": [
+                -0.001022354967475835,
+                -0.00031882204011749425
+            ],
+            "density": 7500.0,
+            "restitution": 0.5,
+            "friction": 0.5,
+            "color": [
+                50,
+                50,
+                255
+            ],
+            "is_static": false,
+            "angle": 0.0,
+            "angular_velocity": 0.0
+        },
+        {
+            "id": 10,
+            "type": "Object",
+            "x": 6.794648072202958,
+            "y": 0.21348776802855926,
+            "radius": 0.1,
+            "velocity": [
+                -0.0010874876425761959,
+                -0.00046649748023110116
+            ],
+            "density": 7500.0,
+            "restitution": 0.5,
+            "friction": 0.5,
+            "color": [
+                50,
+                50,
+                255
+            ],
+            "is_static": false,
+            "angle": 0.0,
+            "angular_velocity": 0.0
+        },
+        {
+            "id": 11,
+            "type": "Object",
+            "x": 8.210262323458847,
+            "y": 0.21462385784429622,
+            "radius": 0.1,
+            "velocity": [
+                -0.0006242565073685107,
+                -0.0007288401443071302
+            ],
+            "density": 7500.0,
+            "restitution": 0.5,
+            "friction": 0.5,
+            "color": [
+                50,
+                50,
+                255
+            ],
+            "is_static": false,
+            "angle": 0.0,
+            "angular_velocity": 0.0
+        },
+        {
+            "id": 12,
+            "type": "Object",
+            "x": 9.549244481829268,
+            "y": 0.2593293702850642,
+            "radius": 0.1,
+            "velocity": [
+                -0.0007893988589709755,
+                -0.0005579843739872831
+            ],
+            "density": 7500.0,
+            "restitution": 0.5,
+            "friction": 0.5,
+            "color": [
+                50,
+                50,
+                255
+            ],
+            "is_static": false,
+            "angle": 0.0,
+            "angular_velocity": 0.0
+        },
+        {
+            "id": 13,
+            "type": "Object",
+            "x": 10.311807793436401,
+            "y": 1.1747337938760765,
+            "radius": 0.1,
+            "velocity": [
+                -0.00028581399264742514,
+                0.0006383137158185361
+            ],
+            "density": 7500.0,
+            "restitution": 0.5,
+            "friction": 0.5,
+            "color": [
+                50,
+                50,
+                255
+            ],
+            "is_static": false,
+            "angle": 0.0,
+            "angular_velocity": 0.0
+        },
+        {
+            "id": 14,
+            "type": "Object",
+            "x": 9.711257696375542,
+            "y": 0.8747384458146221,
+            "radius": 0.1,
+            "velocity": [
+                -0.0008050343797016255,
+                -0.0004241123353382588
+            ],
+            "density": 7500.0,
+            "restitution": 0.5,
+            "friction": 0.5,
+            "color": [
+                50,
+                50,
+                255
+            ],
+            "is_static": false,
+            "angle": 0.0,
+            "angular_velocity": 0.0
+        },
+        {
+            "id": 15,
+            "type": "Object",
+            "x": 10.916770629473662,
+            "y": 0.8527726102044775,
+            "radius": 0.1,
+            "velocity": [
+                0.000666273616487294,
+                0.00044338642358814767
+            ],
+            "density": 7500.0,
+            "restitution": 0.5,
+            "friction": 0.5,
+            "color": [
+                50,
+                50,
+                255
+            ],
+            "is_static": false,
+            "angle": 0.0,
+            "angular_velocity": 0.0
+        },
+        {
+            "id": 16,
+            "type": "Object",
+            "x": 11.202745576999963,
+            "y": 0.26330764494352726,
+            "radius": 0.1,
+            "velocity": [
+                0.0007895970272955152,
+                0.0003962985996683885
+            ],
+            "density": 7500.0,
+            "restitution": 0.5,
+            "friction": 0.5,
+            "color": [
+                50,
+                50,
+                255
+            ],
+            "is_static": false,
+            "angle": 0.0,
+            "angular_velocity": 0.0
+        },
+        {
+            "id": 17,
+            "type": "Object",
+            "x": 11.965379590619856,
+            "y": 0.27587959754498026,
+            "radius": 0.1,
+            "velocity": [
+                0.0006253865025380068,
+                0.0012442083064799743
+            ],
+            "density": 7500.0,
+            "restitution": 0.5,
+            "friction": 0.5,
+            "color": [
+                50,
+                50,
+                255
+            ],
+            "is_static": false,
+            "angle": 0.0,
+            "angular_velocity": 0.0
+        },
+        {
+            "id": 18,
+            "type": "Object",
+            "x": 11.951849533777754,
+            "y": 1.0647980619527613,
+            "radius": 0.1,
+            "velocity": [
+                -0.0004656106660827676,
+                0.001184355897581998
+            ],
+            "density": 7500.0,
+            "restitution": 0.5,
+            "friction": 0.5,
+            "color": [
+                50,
+                50,
+                255
+            ],
+            "is_static": false,
+            "angle": 0.0,
+            "angular_velocity": 0.0
+        },
+        {
+            "id": 19,
+            "type": "Object",
+            "x": 11.92412647331306,
+            "y": 1.8906494268778404,
+            "radius": 0.1,
+            "velocity": [
+                -0.0012523816869853767,
+                0.0009242146029686616
+            ],
+            "density": 7500.0,
+            "restitution": 0.5,
+            "friction": 0.5,
+            "color": [
+                50,
+                50,
+                255
+            ],
+            "is_static": false,
+            "angle": 0.0,
+            "angular_velocity": 0.0
+        },
+        {
+            "id": 20,
+            "type": "Object",
+            "x": 11.072065217650906,
+            "y": 1.9132946940925557,
+            "radius": 0.1,
+            "velocity": [
+                -0.0006783612369610913,
+                -0.00013291194983939322
+            ],
+            "density": 7500.0,
+            "restitution": 0.5,
+            "friction": 0.5,
+            "color": [
+                50,
+                50,
+                255
+            ],
+            "is_static": false,
+            "angle": 0.0,
+            "angular_velocity": 0.0
+        },
+        {
+            "id": 21,
+            "type": "Object",
+            "x": 10.304711097934634,
+            "y": 1.8836657412747175,
+            "radius": 0.1,
+            "velocity": [
+                -0.001039555856450042,
+                -0.000994122387095511
+            ],
+            "density": 7500.0,
+            "restitution": 0.5,
+            "friction": 0.5,
+            "color": [
+                50,
+                50,
+                255
+            ],
+            "is_static": false,
+            "angle": 0.0,
+            "angular_velocity": 0.0
+        },
+        {
+            "id": 22,
+            "type": "Object",
+            "x": 9.453553527507239,
+            "y": 1.8813674141281684,
+            "radius": 0.1,
+            "velocity": [
+                -0.0008473750796419269,
+                -0.0010322099167834461
+            ],
+            "density": 7500.0,
+            "restitution": 0.5,
+            "friction": 0.5,
+            "color": [
+                50,
+                50,
+                255
+            ],
+            "is_static": false,
+            "angle": 0.0,
+            "angular_velocity": 0.0
+        },
+        {
+            "id": 23,
+            "type": "Object",
+            "x": 9.442296468540803,
+            "y": 2.4157371594113872,
+            "radius": 0.1,
+            "velocity": [
+                -0.0008432789951825032,
+                -0.0007043485228906054
+            ],
+            "density": 7500.0,
+            "restitution": 0.5,
+            "friction": 0.5,
+            "color": [
+                50,
+                50,
+                255
+            ],
+            "is_static": false,
+            "angle": 0.0,
+            "angular_velocity": 0.0
+        },
+        {
+            "id": 24,
+            "type": "Object",
+            "x": 9.379138418128452,
+            "y": 3.4631251227491555,
+            "radius": 0.1,
+            "velocity": [
+                -0.0012905220094081124,
+                -0.0005173076938760198
+            ],
+            "density": 7500.0,
+            "restitution": 0.5,
+            "friction": 0.5,
+            "color": [
+                50,
+                50,
+                255
+            ],
+            "is_static": false,
+            "angle": 0.0,
+            "angular_velocity": 0.0
+        },
+        {
+            "id": 25,
+            "type": "Object",
+            "x": 8.178715488657648,
+            "y": 3.511528165520518,
+            "radius": 0.1,
+            "velocity": [
+                -0.0012127267556988775,
+                -0.0006498571002284872
+            ],
+            "density": 7500.0,
+            "restitution": 0.5,
+            "friction": 0.5,
+            "color": [
+                50,
+                50,
+                255
+            ],
+            "is_static": false,
+            "angle": 0.0,
+            "angular_velocity": 0.0
+        },
+        {
+            "id": 26,
+            "type": "Object",
+            "x": 6.79092541568006,
+            "y": 3.472812917210968,
+            "radius": 0.1,
+            "velocity": [
+                -0.0012461638083342782,
+                -0.0006193540463147549
+            ],
+            "density": 7500.0,
+            "restitution": 0.5,
+            "friction": 0.5,
+            "color": [
+                50,
+                50,
+                255
+            ],
+            "is_static": false,
+            "angle": 0.0,
+            "angular_velocity": 0.0
+        },
+        {
+            "id": 27,
+            "type": "Object",
+            "x": 5.44063978959487,
+            "y": 3.4854742273152497,
+            "radius": 0.1,
+            "velocity": [
+                -0.001315672111303708,
+                -0.0005395689743576343
+            ],
+            "density": 7500.0,
+            "restitution": 0.5,
+            "friction": 0.5,
+            "color": [
+                50,
+                50,
+                255
+            ],
+            "is_static": false,
+            "angle": 0.0,
+            "angular_velocity": 0.0
+        },
+        {
+            "id": 28,
+            "type": "Object",
+            "x": 4.065634132338959,
+            "y": 3.515367108626107,
+            "radius": 0.1,
+            "velocity": [
+                -0.0013682724571927613,
+                -0.0004148777484785241
+            ],
+            "density": 7500.0,
+            "restitution": 0.5,
+            "friction": 0.5,
+            "color": [
+                50,
+                50,
+                255
+            ],
+            "is_static": false,
+            "angle": 0.0,
+            "angular_velocity": 0.0
+        },
+        {
+            "id": 29,
+            "type": "Object",
+            "x": 2.753201907473643,
+            "y": 3.4934372432067717,
+            "radius": 0.1,
+            "velocity": [
+                -0.0014491519532900319,
+                -0.0007550858010002938
+            ],
+            "density": 7500.0,
+            "restitution": 0.5,
+            "friction": 0.5,
+            "color": [
+                50,
+                50,
+                255
+            ],
+            "is_static": false,
+            "angle": 0.0,
+            "angular_velocity": 0.0
+        },
+        {
+            "id": 30,
+            "type": "Object",
+            "x": 1.7466009696902984,
+            "y": 2.3728421382882803,
+            "radius": 0.1,
+            "velocity": [
+                -0.0011805201658294407,
+                -0.0009431904935907395
+            ],
+            "density": 7500.0,
+            "restitution": 0.5,
+            "friction": 0.5,
+            "color": [
+                50,
+                50,
+                255
+            ],
+            "is_static": false,
+            "angle": 0.0,
+            "angular_velocity": 0.0
+        },
+        {
+            "id": 31,
+            "type": "Object",
+            "x": 1.7155919801229929,
+            "y": 3.4960398978955896,
+            "radius": 0.1,
+            "velocity": [
+                -0.001497900670159422,
+                -0.0010488185376503374
+            ],
+            "density": 7500.0,
+            "restitution": 0.5,
+            "friction": 0.5,
+            "color": [
+                50,
+                50,
+                255
+            ],
+            "is_static": false,
+            "angle": 0.0,
+            "angular_velocity": 0.0
+        },
+        {
+            "id": 32,
+            "type": "Object",
+            "x": 1.7553603558054895,
+            "y": 1.2612605342564418,
+            "radius": 0.1,
+            "velocity": [
+                -0.0008465556679007487,
+                -0.0011736218475060433
+            ],
+            "density": 7500.0,
+            "restitution": 0.5,
+            "friction": 0.5,
+            "color": [
+                50,
+                50,
+                255
+            ],
+            "is_static": false,
+            "angle": 0.0,
+            "angular_velocity": 0.0
+        },
+        {
+            "id": 33,
+            "type": "Object",
+            "x": 1.7553018033318242,
+            "y": 0.19802229275547062,
+            "radius": 0.1,
+            "velocity": [
+                -0.0003386630269827889,
+                -0.0011105650839428206
+            ],
+            "density": 7500.0,
+            "restitution": 0.5,
+            "friction": 0.5,
+            "color": [
+                50,
+                50,
+                255
+            ],
+            "is_static": false,
+            "angle": 0.0,
+            "angular_velocity": 0.0
+        },
+        {
+            "id": 34,
+            "type": "Object",
+            "x": 2.773632808600887,
+            "y": 2.3824274411370094,
+            "radius": 0.1,
+            "velocity": [
+                -0.0009253885947145218,
+                -0.0006518591032677766
+            ],
+            "density": 7500.0,
+            "restitution": 0.5,
+            "friction": 0.5,
+            "color": [
+                50,
+                50,
+                255
+            ],
+            "is_static": false,
+            "angle": 0.0,
+            "angular_velocity": 0.0
+        },
+        {
+            "id": 35,
+            "type": "Object",
+            "x": 4.115663531196265,
+            "y": 2.3926552032612376,
+            "radius": 0.1,
+            "velocity": [
+                -0.0007438585141164904,
+                -0.0005551632874025601
+            ],
+            "density": 7500.0,
+            "restitution": 0.5,
+            "friction": 0.5,
+            "color": [
+                50,
+                50,
+                255
+            ],
+            "is_static": false,
+            "angle": 0.0,
+            "angular_velocity": 0.0
+        },
+        {
+            "id": 36,
+            "type": "Object",
+            "x": 6.831839424452887,
+            "y": 2.412325156042736,
+            "radius": 0.1,
+            "velocity": [
+                -0.000685001713682514,
+                -0.0006168675587215422
+            ],
+            "density": 7500.0,
+            "restitution": 0.5,
+            "friction": 0.5,
+            "color": [
+                50,
+                50,
+                255
+            ],
+            "is_static": false,
+            "angle": 0.0,
+            "angular_velocity": 0.0
+        },
+        {
+            "id": 37,
+            "type": "Object",
+            "x": 8.242009371733564,
+            "y": 2.4143302863179796,
+            "radius": 0.1,
+            "velocity": [
+                -0.0008295784612033032,
+                -0.0007586885164092136
+            ],
+            "density": 7500.0,
+            "restitution": 0.5,
+            "friction": 0.5,
+            "color": [
+                50,
+                50,
+                255
+            ],
+            "is_static": false,
+            "angle": 0.0,
+            "angular_velocity": 0.0
+        },
+        {
+            "id": 38,
+            "type": "Object",
+            "x": 5.532094533191251,
+            "y": 2.4018980169227797,
+            "radius": 0.1,
+            "velocity": [
+                -0.00045940951274174677,
+                -0.0005004269073411527
+            ],
+            "density": 7500.0,
+            "restitution": 0.5,
+            "friction": 0.5,
+            "color": [
+                50,
+                50,
+                255
+            ],
+            "is_static": false,
+            "angle": 0.0,
+            "angular_velocity": 0.0
+        },
+        {
+            "id": 39,
+            "type": "Object",
+            "x": 2.766513920006262,
+            "y": 1.5106184577186832,
+            "radius": 0.1,
+            "velocity": [
+                -0.0002748035605157581,
+                -0.00037843282893772374
+            ],
+            "density": 7500.0,
+            "restitution": 0.5,
+            "friction": 0.5,
+            "color": [
+                50,
+                50,
+                255
+            ],
+            "is_static": false,
+            "angle": 0.0,
+            "angular_velocity": 0.0
+        },
+        {
+            "id": 40,
+            "type": "Object",
+            "x": 4.130366342260044,
+            "y": 1.6991603024176989,
+            "radius": 0.1,
+            "velocity": [
+                -0.0009436972393642176,
+                -0.0016563410463836716
+            ],
+            "density": 7500.0,
+            "restitution": 0.5,
+            "friction": 0.5,
+            "color": [
+                50,
+                50,
+                255
+            ],
+            "is_static": false,
+            "angle": 0.0,
+            "angular_velocity": 0.0
+        },
+        {
+            "id": 41,
+            "type": "Object",
+            "x": 5.532106723998342,
+            "y": 1.4416811322844092,
+            "radius": 0.1,
+            "velocity": [
+                -0.0014320937085112587,
+                -0.000485253874242364
+            ],
+            "density": 7500.0,
+            "restitution": 0.5,
+            "friction": 0.5,
+            "color": [
+                50,
+                50,
+                255
+            ],
+            "is_static": false,
+            "angle": 0.0,
+            "angular_velocity": 0.0
+        },
+        {
+            "id": 42,
+            "type": "Object",
+            "x": 6.820240244229129,
+            "y": 1.2377997399321645,
+            "radius": 0.1,
+            "velocity": [
+                -0.0009575355844766131,
+                -0.0006067776106112891
+            ],
+            "density": 7500.0,
+            "restitution": 0.5,
+            "friction": 0.5,
+            "color": [
+                50,
+                50,
+                255
+            ],
+            "is_static": false,
+            "angle": 0.0,
+            "angular_velocity": 0.0
+        },
+        {
+            "id": 43,
+            "type": "Object",
+            "x": 8.232241037415156,
+            "y": 1.238667036127096,
+            "radius": 0.1,
+            "velocity": [
+                -0.0009357647693094298,
+                -0.0008152699704450745
+            ],
+            "density": 7500.0,
+            "restitution": 0.5,
+            "friction": 0.5,
+            "color": [
+                50,
+                50,
+                255
+            ],
+            "is_static": false,
+            "angle": 0.0,
+            "angular_velocity": 0.0
+        },
+        {
+            "id": 44,
+            "type": "Object",
+            "x": 9.483249237263793,
+            "y": 1.308635060639644,
+            "radius": 0.1,
+            "velocity": [
+                -0.0004486647023150155,
+                -0.0004212492795314408
+            ],
+            "density": 7500.0,
+            "restitution": 0.5,
+            "friction": 0.5,
+            "color": [
+                50,
+                50,
+                255
+            ],
+            "is_static": false,
+            "angle": 0.0,
+            "angular_velocity": 0.0
+        }
+    ],
+    "springs": [
+        {
+            "obj1_id": 31,
+            "obj2_id": 29,
+            "k": 200000.0,
+            "d": 1500.0,
+            "yield_limit": 0.10, "break_limit": 0.15
+        },
+        {
+            "obj1_id": 31,
+            "obj2_id": 30,
+            "k": 200000.0,
+            "d": 1500.0,
+            "yield_limit": 0.10, "break_limit": 0.15
+        },
+        {
+            "obj1_id": 34,
+            "obj2_id": 30,
+            "k": 200000.0,
+            "d": 1500.0,
+            "yield_limit": 0.10, "break_limit": 0.15
+        },
+        {
+            "obj1_id": 29,
+            "obj2_id": 34,
+            "k": 200000.0,
+            "d": 1500.0,
+            "yield_limit": 0.10, "break_limit": 0.15
+        },
+        {
+            "obj1_id": 32,
+            "obj2_id": 30,
+            "k": 200000.0,
+            "d": 1500.0,
+            "yield_limit": 0.10, "break_limit": 0.15
+        },
+        {
+            "obj1_id": 34,
+            "obj2_id": 32,
+            "k": 200000.0,
+            "d": 1500.0,
+            "yield_limit": 0.10, "break_limit": 0.15
+        },
+        {
+            "obj1_id": 39,
+            "obj2_id": 30,
+            "k": 200000.0,
+            "d": 1500.0,
+            "yield_limit": 0.10, "break_limit": 0.15
+        },
+        {
+            "obj1_id": 32,
+            "obj2_id": 39,
+            "k": 200000.0,
+            "d": 1500.0,
+            "yield_limit": 0.10, "break_limit": 0.15
+        },
+        {
+            "obj1_id": 34,
+            "obj2_id": 39,
+            "k": 200000.0,
+            "d": 1500.0,
+            "yield_limit": 0.10, "break_limit": 0.15
+        },
+        {
+            "obj1_id": 32,
+            "obj2_id": 33,
+            "k": 200000.0,
+            "d": 1500.0,
+            "yield_limit": 0.10, "break_limit": 0.15
+        },
+        {
+            "obj1_id": 32,
+            "obj2_id": 7,
+            "k": 200000.0,
+            "d": 1500.0,
+            "yield_limit": 0.10, "break_limit": 0.15
+        },
+        {
+            "obj1_id": 33,
+            "obj2_id": 7,
+            "k": 200000.0,
+            "d": 1500.0,
+            "yield_limit": 0.10, "break_limit": 0.15
+        },
+        {
+            "obj1_id": 8,
+            "obj2_id": 33,
+            "k": 200000.0,
+            "d": 1500.0,
+            "yield_limit": 0.10, "break_limit": 0.15
+        },
+        {
+            "obj1_id": 8,
+            "obj2_id": 7,
+            "k": 200000.0,
+            "d": 1500.0,
+            "yield_limit": 0.10, "break_limit": 0.15
+        },
+        {
+            "obj1_id": 7,
+            "obj2_id": 3,
+            "k": 200000.0,
+            "d": 1500.0,
+            "yield_limit": 0.10, "break_limit": 0.15
+        },
+        {
+            "obj1_id": 3,
+            "obj2_id": 4,
+            "k": 200000.0,
+            "d": 1500.0,
+            "yield_limit": 0.10, "break_limit": 0.15
+        },
+        {
+            "obj1_id": 4,
+            "obj2_id": 5,
+            "k": 200000.0,
+            "d": 1500.0,
+            "yield_limit": 0.10, "break_limit": 0.15
+        },
+        {
+            "obj1_id": 5,
+            "obj2_id": 6,
+            "k": 200000.0,
+            "d": 1500.0,
+            "yield_limit": 0.10, "break_limit": 0.15
+        },
+        {
+            "obj1_id": 6,
+            "obj2_id": 9,
+            "k": 200000.0,
+            "d": 1500.0,
+            "yield_limit": 0.10, "break_limit": 0.15
+        },
+        {
+            "obj1_id": 39,
+            "obj2_id": 3,
+            "k": 200000.0,
+            "d": 1500.0,
+            "yield_limit": 0.10, "break_limit": 0.15
+        },
+        {
+            "obj1_id": 39,
+            "obj2_id": 7,
+            "k": 200000.0,
+            "d": 1500.0,
+            "yield_limit": 0.10, "break_limit": 0.15
+        },
+        {
+            "obj1_id": 33,
+            "obj2_id": 39,
+            "k": 200000.0,
+            "d": 1500.0,
+            "yield_limit": 0.10, "break_limit": 0.15
+        },
+        {
+            "obj1_id": 39,
+            "obj2_id": 40,
+            "k": 200000.0,
+            "d": 1500.0,
+            "yield_limit": 0.10, "break_limit": 0.15
+        },
+        {
+            "obj1_id": 40,
+            "obj2_id": 4,
+            "k": 200000.0,
+            "d": 1500.0,
+            "yield_limit": 0.10, "break_limit": 0.15
+        },
+        {
+            "obj1_id": 3,
+            "obj2_id": 40,
+            "k": 200000.0,
+            "d": 1500.0,
+            "yield_limit": 0.10, "break_limit": 0.15
+        },
+        {
+            "obj1_id": 40,
+            "obj2_id": 5,
+            "k": 200000.0,
+            "d": 1500.0,
+            "yield_limit": 0.10, "break_limit": 0.15
+        },
+        {
+            "obj1_id": 40,
+            "obj2_id": 41,
+            "k": 200000.0,
+            "d": 1500.0,
+            "yield_limit": 0.10, "break_limit": 0.15
+        },
+        {
+            "obj1_id": 6,
+            "obj2_id": 41,
+            "k": 200000.0,
+            "d": 1500.0,
+            "yield_limit": 0.10, "break_limit": 0.15
+        },
+        {
+            "obj1_id": 5,
+            "obj2_id": 41,
+            "k": 200000.0,
+            "d": 1500.0,
+            "yield_limit": 0.10, "break_limit": 0.15
+        },
+        {
+            "obj1_id": 9,
+            "obj2_id": 10,
+            "k": 200000.0,
+            "d": 1500.0,
+            "yield_limit": 0.10, "break_limit": 0.15
+        },
+        {
+            "obj1_id": 10,
+            "obj2_id": 11,
+            "k": 200000.0,
+            "d": 1500.0,
+            "yield_limit": 0.10, "break_limit": 0.15
+        },
+        {
+            "obj1_id": 11,
+            "obj2_id": 12,
+            "k": 200000.0,
+            "d": 1500.0,
+            "yield_limit": 0.10, "break_limit": 0.15
+        },
+        {
+            "obj1_id": 43,
+            "obj2_id": 42,
+            "k": 200000.0,
+            "d": 1500.0,
+            "yield_limit": 0.10, "break_limit": 0.15
+        },
+        {
+            "obj1_id": 41,
+            "obj2_id": 42,
+            "k": 200000.0,
+            "d": 1500.0,
+            "yield_limit": 0.10, "break_limit": 0.15
+        },
+        {
+            "obj1_id": 42,
+            "obj2_id": 10,
+            "k": 200000.0,
+            "d": 1500.0,
+            "yield_limit": 0.10, "break_limit": 0.15
+        },
+        {
+            "obj1_id": 43,
+            "obj2_id": 11,
+            "k": 200000.0,
+            "d": 1500.0,
+            "yield_limit": 0.10, "break_limit": 0.15
+        },
+        {
+            "obj1_id": 43,
+            "obj2_id": 44,
+            "k": 200000.0,
+            "d": 1500.0,
+            "yield_limit": 0.10, "break_limit": 0.15
+        },
+        {
+            "obj1_id": 44,
+            "obj2_id": 12,
+            "k": 200000.0,
+            "d": 1500.0,
+            "yield_limit": 0.10, "break_limit": 0.15
+        },
+        {
+            "obj1_id": 41,
+            "obj2_id": 10,
+            "k": 200000.0,
+            "d": 1500.0,
+            "yield_limit": 0.10, "break_limit": 0.15
+        },
+        {
+            "obj1_id": 9,
+            "obj2_id": 42,
+            "k": 200000.0,
+            "d": 1500.0,
+            "yield_limit": 0.10, "break_limit": 0.15
+        },
+        {
+            "obj1_id": 6,
+            "obj2_id": 42,
+            "k": 200000.0,
+            "d": 1500.0,
+            "yield_limit": 0.10, "break_limit": 0.15
+        },
+        {
+            "obj1_id": 6,
+            "obj2_id": 10,
+            "k": 200000.0,
+            "d": 1500.0,
+            "yield_limit": 0.10, "break_limit": 0.15
+        },
+        {
+            "obj1_id": 42,
+            "obj2_id": 11,
+            "k": 200000.0,
+            "d": 1500.0,
+            "yield_limit": 0.10, "break_limit": 0.15
+        },
+        {
+            "obj1_id": 10,
+            "obj2_id": 43,
+            "k": 200000.0,
+            "d": 1500.0,
+            "yield_limit": 0.10, "break_limit": 0.15
+        },
+        {
+            "obj1_id": 43,
+            "obj2_id": 12,
+            "k": 200000.0,
+            "d": 1500.0,
+            "yield_limit": 0.10, "break_limit": 0.15
+        },
+        {
+            "obj1_id": 11,
+            "obj2_id": 44,
+            "k": 200000.0,
+            "d": 1500.0,
+            "yield_limit": 0.10, "break_limit": 0.15
+        },
+        {
+            "obj1_id": 34,
+            "obj2_id": 35,
+            "k": 200000.0,
+            "d": 1500.0,
+            "yield_limit": 0.10, "break_limit": 0.15
+        },
+        {
+            "obj1_id": 38,
+            "obj2_id": 35,
+            "k": 200000.0,
+            "d": 1500.0,
+            "yield_limit": 0.10, "break_limit": 0.15
+        },
+        {
+            "obj1_id": 37,
+            "obj2_id": 36,
+            "k": 200000.0,
+            "d": 1500.0,
+            "yield_limit": 0.10, "break_limit": 0.15
+        },
+        {
+            "obj1_id": 36,
+            "obj2_id": 38,
+            "k": 200000.0,
+            "d": 1500.0,
+            "yield_limit": 0.10, "break_limit": 0.15
+        },
+        {
+            "obj1_id": 35,
+            "obj2_id": 40,
+            "k": 200000.0,
+            "d": 1500.0,
+            "yield_limit": 0.10, "break_limit": 0.15
+        },
+        {
+            "obj1_id": 34,
+            "obj2_id": 40,
+            "k": 200000.0,
+            "d": 1500.0,
+            "yield_limit": 0.10, "break_limit": 0.15
+        },
+        {
+            "obj1_id": 39,
+            "obj2_id": 35,
+            "k": 200000.0,
+            "d": 1500.0,
+            "yield_limit": 0.10, "break_limit": 0.15
+        },
+        {
+            "obj1_id": 35,
+            "obj2_id": 41,
+            "k": 200000.0,
+            "d": 1500.0,
+            "yield_limit": 0.10, "break_limit": 0.15
+        },
+        {
+            "obj1_id": 40,
+            "obj2_id": 38,
+            "k": 200000.0,
+            "d": 1500.0,
+            "yield_limit": 0.10, "break_limit": 0.15
+        },
+        {
+            "obj1_id": 38,
+            "obj2_id": 41,
+            "k": 200000.0,
+            "d": 1500.0,
+            "yield_limit": 0.10, "break_limit": 0.15
+        },
+        {
+            "obj1_id": 36,
+            "obj2_id": 42,
+            "k": 200000.0,
+            "d": 1500.0,
+            "yield_limit": 0.10, "break_limit": 0.15
+        },
+        {
+            "obj1_id": 36,
+            "obj2_id": 41,
+            "k": 200000.0,
+            "d": 1500.0,
+            "yield_limit": 0.10, "break_limit": 0.15
+        },
+        {
+            "obj1_id": 38,
+            "obj2_id": 42,
+            "k": 200000.0,
+            "d": 1500.0,
+            "yield_limit": 0.10, "break_limit": 0.15
+        },
+        {
+            "obj1_id": 37,
+            "obj2_id": 43,
+            "k": 200000.0,
+            "d": 1500.0,
+            "yield_limit": 0.10, "break_limit": 0.15
+        },
+        {
+            "obj1_id": 37,
+            "obj2_id": 42,
+            "k": 200000.0,
+            "d": 1500.0,
+            "yield_limit": 0.10, "break_limit": 0.15
+        },
+        {
+            "obj1_id": 36,
+            "obj2_id": 43,
+            "k": 200000.0,
+            "d": 1500.0,
+            "yield_limit": 0.10, "break_limit": 0.15
+        },
+        {
+            "obj1_id": 37,
+            "obj2_id": 22,
+            "k": 200000.0,
+            "d": 1500.0,
+            "yield_limit": 0.10, "break_limit": 0.15
+        },
+        {
+            "obj1_id": 22,
+            "obj2_id": 44,
+            "k": 200000.0,
+            "d": 1500.0,
+            "yield_limit": 0.10, "break_limit": 0.15
+        },
+        {
+            "obj1_id": 22,
+            "obj2_id": 43,
+            "k": 200000.0,
+            "d": 1500.0,
+            "yield_limit": 0.10, "break_limit": 0.15
+        },
+        {
+            "obj1_id": 37,
+            "obj2_id": 44,
+            "k": 200000.0,
+            "d": 1500.0,
+            "yield_limit": 0.10, "break_limit": 0.15
+        },
+        {
+            "obj1_id": 22,
+            "obj2_id": 21,
+            "k": 200000.0,
+            "d": 1500.0,
+            "yield_limit": 0.10, "break_limit": 0.15
+        },
+        {
+            "obj1_id": 21,
+            "obj2_id": 20,
+            "k": 200000.0,
+            "d": 1500.0,
+            "yield_limit": 0.10, "break_limit": 0.15
+        },
+        {
+            "obj1_id": 20,
+            "obj2_id": 19,
+            "k": 200000.0,
+            "d": 1500.0,
+            "yield_limit": 0.10, "break_limit": 0.15
+        },
+        {
+            "obj1_id": 19,
+            "obj2_id": 18,
+            "k": 200000.0,
+            "d": 1500.0,
+            "yield_limit": 0.10, "break_limit": 0.15
+        },
+        {
+            "obj1_id": 18,
+            "obj2_id": 17,
+            "k": 200000.0,
+            "d": 1500.0,
+            "yield_limit": 0.10, "break_limit": 0.15
+        },
+        {
+            "obj1_id": 16,
+            "obj2_id": 17,
+            "k": 200000.0,
+            "d": 1500.0,
+            "yield_limit": 0.10, "break_limit": 0.15
+        },
+        {
+            "obj1_id": 16,
+            "obj2_id": 15,
+            "k": 200000.0,
+            "d": 1500.0,
+            "yield_limit": 0.10, "break_limit": 0.15
+        },
+        {
+            "obj1_id": 15,
+            "obj2_id": 13,
+            "k": 200000.0,
+            "d": 1500.0,
+            "yield_limit": 0.10, "break_limit": 0.15
+        },
+        {
+            "obj1_id": 14,
+            "obj2_id": 13,
+            "k": 200000.0,
+            "d": 1500.0,
+            "yield_limit": 0.10, "break_limit": 0.15
+        },
+        {
+            "obj1_id": 14,
+            "obj2_id": 44,
+            "k": 200000.0,
+            "d": 1500.0,
+            "yield_limit": 0.10, "break_limit": 0.15
+        },
+        {
+            "obj1_id": 44,
+            "obj2_id": 14,
+            "k": 200000.0,
+            "d": 1500.0,
+            "yield_limit": 0.10, "break_limit": 0.15
+        },
+        {
+            "obj1_id": 14,
+            "obj2_id": 12,
+            "k": 200000.0,
+            "d": 1500.0,
+            "yield_limit": 0.10, "break_limit": 0.15
+        },
+        {
+            "obj1_id": 21,
+            "obj2_id": 13,
+            "k": 200000.0,
+            "d": 1500.0,
+            "yield_limit": 0.10, "break_limit": 0.15
+        },
+        {
+            "obj1_id": 44,
+            "obj2_id": 21,
+            "k": 200000.0,
+            "d": 1500.0,
+            "yield_limit": 0.10, "break_limit": 0.15
+        },
+        {
+            "obj1_id": 22,
+            "obj2_id": 13,
+            "k": 200000.0,
+            "d": 1500.0,
+            "yield_limit": 0.10, "break_limit": 0.15
+        },
+        {
+            "obj1_id": 20,
+            "obj2_id": 13,
+            "k": 200000.0,
+            "d": 1500.0,
+            "yield_limit": 0.10, "break_limit": 0.15
+        },
+        {
+            "obj1_id": 20,
+            "obj2_id": 15,
+            "k": 200000.0,
+            "d": 1500.0,
+            "yield_limit": 0.10, "break_limit": 0.15
+        },
+        {
+            "obj1_id": 21,
+            "obj2_id": 15,
+            "k": 200000.0,
+            "d": 1500.0,
+            "yield_limit": 0.10, "break_limit": 0.15
+        },
+        {
+            "obj1_id": 15,
+            "obj2_id": 18,
+            "k": 200000.0,
+            "d": 1500.0,
+            "yield_limit": 0.10, "break_limit": 0.15
+        },
+        {
+            "obj1_id": 15,
+            "obj2_id": 17,
+            "k": 200000.0,
+            "d": 1500.0,
+            "yield_limit": 0.10, "break_limit": 0.15
+        },
+        {
+            "obj1_id": 16,
+            "obj2_id": 18,
+            "k": 200000.0,
+            "d": 1500.0,
+            "yield_limit": 0.10, "break_limit": 0.15
+        },
+        {
+            "obj1_id": 15,
+            "obj2_id": 19,
+            "k": 200000.0,
+            "d": 1500.0,
+            "yield_limit": 0.10, "break_limit": 0.15
+        },
+        {
+            "obj1_id": 20,
+            "obj2_id": 18,
+            "k": 200000.0,
+            "d": 1500.0,
+            "yield_limit": 0.10, "break_limit": 0.15
+        },
+        {
+            "obj1_id": 23,
+            "obj2_id": 22,
+            "k": 200000.0,
+            "d": 1500.0,
+            "yield_limit": 0.10, "break_limit": 0.15
+        },
+        {
+            "obj1_id": 24,
+            "obj2_id": 23,
+            "k": 200000.0,
+            "d": 1500.0,
+            "yield_limit": 0.10, "break_limit": 0.15
+        },
+        {
+            "obj1_id": 24,
+            "obj2_id": 21,
+            "k": 200000.0,
+            "d": 1500.0,
+            "yield_limit": 0.10, "break_limit": 0.15
+        },
+        {
+            "obj1_id": 37,
+            "obj2_id": 25,
+            "k": 200000.0,
+            "d": 1500.0,
+            "yield_limit": 0.10, "break_limit": 0.15
+        },
+        {
+            "obj1_id": 26,
+            "obj2_id": 36,
+            "k": 200000.0,
+            "d": 1500.0,
+            "yield_limit": 0.10, "break_limit": 0.15
+        },
+        {
+            "obj1_id": 26,
+            "obj2_id": 27,
+            "k": 200000.0,
+            "d": 1500.0,
+            "yield_limit": 0.10, "break_limit": 0.15
+        },
+        {
+            "obj1_id": 38,
+            "obj2_id": 27,
+            "k": 200000.0,
+            "d": 1500.0,
+            "yield_limit": 0.10, "break_limit": 0.15
+        },
+        {
+            "obj1_id": 28,
+            "obj2_id": 35,
+            "k": 200000.0,
+            "d": 1500.0,
+            "yield_limit": 0.10, "break_limit": 0.15
+        },
+        {
+            "obj1_id": 29,
+            "obj2_id": 28,
+            "k": 200000.0,
+            "d": 1500.0,
+            "yield_limit": 0.10, "break_limit": 0.15
+        },
+        {
+            "obj1_id": 27,
+            "obj2_id": 28,
+            "k": 200000.0,
+            "d": 1500.0,
+            "yield_limit": 0.10, "break_limit": 0.15
+        },
+        {
+            "obj1_id": 26,
+            "obj2_id": 25,
+            "k": 200000.0,
+            "d": 1500.0,
+            "yield_limit": 0.10, "break_limit": 0.15
+        },
+        {
+            "obj1_id": 24,
+            "obj2_id": 25,
+            "k": 200000.0,
+            "d": 1500.0,
+            "yield_limit": 0.10, "break_limit": 0.15
+        },
+        {
+            "obj1_id": 24,
+            "obj2_id": 23,
+            "k": 200000.0,
+            "d": 1500.0,
+            "yield_limit": 0.10, "break_limit": 0.15
+        },
+        {
+            "obj1_id": 37,
+            "obj2_id": 23,
+            "k": 200000.0,
+            "d": 1500.0,
+            "yield_limit": 0.10, "break_limit": 0.15
+        },
+        {
+            "obj1_id": 43,
+            "obj2_id": 23,
+            "k": 200000.0,
+            "d": 1500.0,
+            "yield_limit": 0.10, "break_limit": 0.15
+        },
+        {
+            "obj1_id": 3,
+            "obj2_id": 1,
+            "k": 200000.0,
+            "d": 1500.0,
+            "yield_limit": 0.10, "break_limit": 0.15
+        },
+        {
+            "obj1_id": 7,
+            "obj2_id": 1,
+            "k": 200000.0,
+            "d": 1500.0,
+            "yield_limit": 0.10, "break_limit": 0.15
+        },
+        {
+            "obj1_id": 4,
+            "obj2_id": 1,
+            "k": 200000.0,
+            "d": 1500.0,
+            "yield_limit": 0.10, "break_limit": 0.15
+        },
+        {
+            "obj1_id": 4,
+            "obj2_id": 0,
+            "k": 200000.0,
+            "d": 1500.0,
+            "yield_limit": 0.10, "break_limit": 0.15
+        },
+        {
+            "obj1_id": 5,
+            "obj2_id": 0,
+            "k": 200000.0,
+            "d": 1500.0,
+            "yield_limit": 0.10, "break_limit": 0.15
+        },
+        {
+            "obj1_id": 1,
+            "obj2_id": 0,
+            "k": 200000.0,
+            "d": 1500.0,
+            "yield_limit": 0.10, "break_limit": 0.15
+        },
+        {
+            "obj1_id": 0,
+            "obj2_id": 6,
+            "k": 200000.0,
+            "d": 1500.0,
+            "yield_limit": 0.10, "break_limit": 0.15
+        },
+        {
+            "obj1_id": 14,
+            "obj2_id": 2,
+            "k": 200000.0,
+            "d": 1500.0,
+            "yield_limit": 0.10, "break_limit": 0.15
+        },
+        {
+            "obj1_id": 13,
+            "obj2_id": 2,
+            "k": 200000.0,
+            "d": 1500.0,
+            "yield_limit": 0.10, "break_limit": 0.15
+        },
+        {
+            "obj1_id": 15,
+            "obj2_id": 2,
+            "k": 200000.0,
+            "d": 1500.0,
+            "yield_limit": 0.10, "break_limit": 0.15
+        },
+        {
+            "obj1_id": 30,
+            "obj2_id": 29,
+            "k": 200000.0,
+            "d": 160.0,
+            "yield_limit": 0.10, "break_limit": 0.155
+        },
+        {
+            "obj1_id": 23,
+            "obj2_id": 25,
+            "k": 200000.0,
+            "d": 160.0,
+            "yield_limit": 0.10, "break_limit": 0.155
+        },
+        {
+            "obj1_id": 29,
+            "obj2_id": 35,
+            "k": 200000.0,
+            "d": 160.0,
+            "yield_limit": 0.10, "break_limit": 0.155
+        },
+        {
+            "obj1_id": 35,
+            "obj2_id": 27,
+            "k": 200000.0,
+            "d": 160.0,
+            "yield_limit": 0.10, "break_limit": 0.155
+        },
+        {
+            "obj1_id": 27,
+            "obj2_id": 36,
+            "k": 200000.0,
+            "d": 160.0,
+            "yield_limit": 0.10, "break_limit": 0.155
+        },
+        {
+            "obj1_id": 36,
+            "obj2_id": 25,
+            "k": 200000.0,
+            "d": 160.0,
+            "yield_limit": 0.10, "break_limit": 0.155
+        },
+        {
+            "obj1_id": 14,
+            "obj2_id": 43,
+            "k": 200000.0,
+            "d": 160.0,
+            "yield_limit": 0.10, "break_limit": 0.155
+        },
+        {
+            "obj1_id": 43,
+            "obj2_id": 14,
+            "k": 200000.0,
+            "d": 160.0,
+            "yield_limit": 0.10, "break_limit": 0.155
+        },
+        {
+            "obj1_id": 14,
+            "obj2_id": 11,
+            "k": 200000.0,
+            "d": 160.0,
+            "yield_limit": 0.10, "break_limit": 0.155
+        }
+    ]
+}
