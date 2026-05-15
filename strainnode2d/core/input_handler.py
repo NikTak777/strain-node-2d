@@ -295,7 +295,7 @@ class InputHandler:
                     target = None
                     if len(app.selected_nodes) == 1 and len(app.selected_springs) == 0:
                         target = app.selected_nodes[0]
-                    elif len(app.selected_springs) == 1 and len(app.selected_nodes) == 0:
+                    elif len(app.selected_springs) == 1 and len(app.selected_nodes) <= 2:
                         target = app.selected_springs[0]
 
                     if target is not None:

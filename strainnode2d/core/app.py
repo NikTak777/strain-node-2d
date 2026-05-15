@@ -299,7 +299,7 @@ class SimulationApp:
 
         if len(self.selected_nodes) == 1 and len(self.selected_springs) == 0:
             self.inspector.draw(self.screen, self.selected_nodes[0], self.scale, self.camera, self.width, self.height)
-        elif len(self.selected_springs) == 1 and len(self.selected_nodes) == 0:
+        elif len(self.selected_springs) == 1 and len(self.selected_nodes) <= 2:
             self.inspector.draw(self.screen, self.selected_springs[0], self.scale, self.camera, self.width, self.height)
 
         pygame.display.flip()
