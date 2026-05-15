@@ -18,10 +18,10 @@
 
 import pygame
 import math
-from typing import Union, Any
-from physics.objects import Object, MotorWheel
-from physics.springs import Spring
-from camera import Camera
+from typing import Union
+from strainnode2d.physics.objects import Object, MotorWheel
+from strainnode2d.physics.springs import Spring
+from strainnode2d.core.camera import Camera
 
 
 class InspectorHUD:

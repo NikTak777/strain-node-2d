@@ -1,6 +1,6 @@
 import json
-from physics.objects import Object, MotorWheel
-from physics.springs import Spring
+from strainnode2d.physics.objects import Object, MotorWheel
+from strainnode2d.physics.springs import Spring
 
 
 def save_scene(sim, filename):

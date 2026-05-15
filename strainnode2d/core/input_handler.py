@@ -21,10 +21,10 @@ import random
 import math
 import tkinter as tk
 from tkinter import filedialog
-from physics.objects import Object, MotorWheel
-from physics.springs import Spring, Rope, Hydraulic
-from physics.serializer import save_scene, load_scene
-from ui.dialogs import show_spawn_dialog, show_edit_dialog
+from strainnode2d.physics.objects import Object, MotorWheel
+from strainnode2d.physics.springs import Spring, Rope, Hydraulic
+from strainnode2d.physics.serializer import save_scene, load_scene
+from strainnode2d.ui.dialogs import show_edit_dialog
 
 
 class InputHandler:

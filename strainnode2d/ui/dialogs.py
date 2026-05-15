@@ -18,8 +18,8 @@
 
 import tkinter as tk
 from tkinter import ttk, messagebox
-from physics.objects import Object, MotorWheel
-from physics.springs import Spring
+from strainnode2d.physics.objects import Object, MotorWheel
+from strainnode2d.physics.springs import Spring
 
 
 def show_spawn_dialog():
