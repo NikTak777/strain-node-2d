@@ -22,7 +22,7 @@ import math
 import tkinter as tk
 from tkinter import filedialog
 from strainnode2d.physics.objects import Object, MotorWheel
-from strainnode2d.physics.springs import Spring, Rope, Hydraulic, Beam
+from strainnode2d.physics.springs import Spring, Rope, Hydraulic, Beam, AeroBeam
 from strainnode2d.physics.serializer import save_scene, load_scene
 from strainnode2d.ui.dialogs import show_edit_dialog
 
@@ -248,7 +248,7 @@ class InputHandler:
                         if isinstance(spring, Hydraulic): spring.activation = -1
 
                 # Смена типов балок
-                elif event.key in (pygame.K_1, pygame.K_2, pygame.K_3, pygame.K_4):
+                elif event.key in (pygame.K_1, pygame.K_2, pygame.K_3, pygame.K_4, pygame.K_5):
                     if len(app.selected_springs) == 1:
                         target_spring = app.selected_springs[0]
                         obj1, obj2 = target_spring.obj1, target_spring.obj2
@@ -264,6 +264,8 @@ class InputHandler:
                             new_link = Hydraulic(obj1, obj2, speed=2.0, min_length=0.5, max_length=10.0)
                         elif event.key == pygame.K_4:
                             new_link = Beam(obj1, obj2)
+                        elif event.key == pygame.K_5:
+                            new_link = AeroBeam(obj1, obj2, lift_coef=2.5)
 
                         if new_link:
                             app.sim.add_spring(new_link)

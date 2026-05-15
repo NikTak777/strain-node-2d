@@ -323,7 +323,10 @@ class PhysicSimulation:
         """
         # Вычисление сил во всех балках и обновление скоростей узлов
         for spring in self.springs:
-            spring.update(dt)
+            if hasattr(spring, 'air_density'):
+                spring.update(dt, air_density=self.density)
+            else:
+                spring.update(dt)
 
         # Очистка физического мира от разорванных связей
         self.springs = [s for s in self.springs if not s.is_broken]
