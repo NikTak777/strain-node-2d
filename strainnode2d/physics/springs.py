@@ -223,3 +223,32 @@ class Hydraulic(Spring):
 
         # Передается управление стандартной физике пружины
         super().update(dt)
+
+
+class Beam(Spring):
+    def __init__(self, obj1: Object, obj2: Object, **kwargs):
+        """
+        Инициализация максимально жесткой балки.
+        Использует экстремальные коэффициенты жесткости для минимизации деформации.
+        Рекомендуется для создания несущих рам, где эластичность не требуется.
+
+        :param obj1: Первый физический узел (Object), к которому привязана балка.
+        :param obj2: Второй физический узел (Object), к которому привязана балка.
+        :param kwargs: Дополнительные параметры, передаваемые в родительский класс Spring.
+                       Позволяет переопределить rest_length, k, d и другие свойства.
+        """
+        kwargs.setdefault('k', 100000000.0)
+        kwargs.setdefault('d', 500000.0)
+
+        kwargs.setdefault('yield_limit', float('inf'))
+        kwargs.setdefault('break_limit', 0.99)
+
+        super().__init__(obj1, obj2, **kwargs)
+
+    def update(self, dt: float):
+        """
+        Обновление состояния балки.
+
+        :param dt: Шаг времени симуляции (в секундах).
+        """
+        super().update(dt)
