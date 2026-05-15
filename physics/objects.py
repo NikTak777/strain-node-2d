@@ -51,6 +51,7 @@ class Object:
         self.I = 0.4 * self.mass * (self.radius ** 2)  # I = 2/5 * m * r^2
 
         self.surface = None  # Текстура шара
+        self.surface_scale = None
         self.on_ground = False  # Флаг контакта с землей
         self.rolling_resistance = 0.01  # Коэффициент сопротивления качению (0.01 - 0.05)
         self.is_static = False  # Флаг статичного объекта

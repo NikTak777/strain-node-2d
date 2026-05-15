@@ -18,19 +18,34 @@
 
 import pygame
 import math
+from typing import Union, Any
 from physics.objects import Object, MotorWheel
 from physics.springs import Spring
+from camera import Camera
 
 
 class InspectorHUD:
     def __init__(self):
-        # Инициализируем шрифт только один раз при создании класса
         self.font = pygame.font.SysFont("Consolas", 14)
         self.bg_color = (25, 25, 30, 210)
         self.border_color = (100, 150, 255, 255)
 
-    def draw(self, screen, target, scale, screen_width, screen_height):
-        """Рисует HUD для любого переданного объекта (Узел или Балка)."""
+    def draw(self, screen: pygame.Surface, target: Union[Object, Spring], scale: float,
+             camera: Camera, screen_width: int, screen_height: int)-> None:
+        """
+        Отрисовка информационного окна (HUD) с характеристиками выбранного физического объекта.
+
+        Выполняет расчет экранных координат через камеру, формирует текстовые строки
+        на основе типа объекта и отрисовывает подложку с обводкой.
+
+        :param screen: Основная поверхность Pygame для отрисовки интерфейса.
+        :param target: Физический объект (узел Object или балка Spring) для инспекции.
+        :param scale: Базовый физический масштаб (пикселей на метр).
+        :param camera: Экземпляр виртуальной камеры для учета смещения и зума.
+        :param screen_width: Текущая ширина окна приложения в пикселях.
+        :param screen_height: Текущая высота окна приложения в пикселях.
+        :return: None
+        """
         lines = []
         anchor_x, anchor_y = 0.0, 0.0  # Физические координаты, куда привяжется окно
 
@@ -83,13 +98,13 @@ class InspectorHUD:
         bg_width, bg_height = max_width + padding * 2, total_height + padding * 2
 
         # Перевод физических координат в экранные
-        screen_x = int(anchor_x * scale)
-        screen_y = int(screen_height - (anchor_y * scale))
+        screen_x, screen_y = camera.phys_to_screen(anchor_x, anchor_y, scale)
 
         margin_px = 20  # Внешний отступ от желтой обводки (в пикселях)
+        eff_scale = scale * camera.zoom  # Эффективный масштаб для учета зума
 
         if isinstance(target, Object):
-            offset_x = int(target.radius * scale) + margin_px
+            offset_x = int(target.radius * eff_scale) + margin_px
         else:
             offset_x = 25
 

@@ -46,17 +46,20 @@ class InputHandler:
             elif event.type == pygame.VIDEORESIZE:
                 app.width, app.height = event.w, event.h
                 app.screen = pygame.display.set_mode((app.width, app.height), pygame.RESIZABLE)
-                phys_width = app.width / app.scale
-                phys_height = app.height / app.scale
-                # Обновляем границы физического мира
-                app.sim.Area.borders = [[max(phys_width, 0), max(phys_height, 0)],
-                                        [min(phys_width, 0), min(phys_height, 0)]]
+                app.camera.width = app.width
+                app.camera.height = app.height
+
+            # Колёсико мыши (зум камеры)
+            elif event.type == pygame.MOUSEWHEEL:
+                zoom_factor = 1.1 if event.y > 0 else 0.9
+                app.camera.zoom *= zoom_factor
+                # Ограничивает приближение/отдаление (от 10% до 1000%)
+                app.camera.zoom = max(0.1, min(app.camera.zoom, 10.0))
 
             # Обработка событий мыши
             elif event.type == pygame.MOUSEBUTTONDOWN:
                 mx, my = pygame.mouse.get_pos()
-                phys_mx = mx / app.scale
-                phys_my = (app.height - my) / app.scale
+                phys_mx, phys_my = app.camera.screen_to_phys(mx, my, app.scale)
 
                 mods = pygame.key.get_mods()
                 is_shift = bool(mods & pygame.KMOD_SHIFT)
@@ -124,10 +127,14 @@ class InputHandler:
                                 app.selected_springs = [clicked_obj]
                                 app.selected_nodes = [clicked_obj.obj1, clicked_obj.obj2]
                     else:
-                        if not is_shift:
+                        if not is_shift and not is_ctrl:
                             app.selected_nodes.clear()
                             app.selected_springs.clear()
-                        else:
+                            app.is_panning = True
+                            app.pan_start_mouse = pygame.mouse.get_pos()
+                            app.pan_start_camera = (app.camera.x, app.camera.y)
+                            app.camera.target = None
+                        elif is_shift:
                             rand_radius = random.uniform(0.15, 1.0)
                             rand_velocity = [random.uniform(-10, 10), random.uniform(-10, 10)]
                             rand_density = random.uniform(200, 20000)
@@ -136,8 +143,7 @@ class InputHandler:
                                              density=rand_density, color=rand_color)
                             app.sim.add_object(new_obj)
 
-                elif event.button == 2:  # СКМ
-                    # Если кликнули СКМ, то замораживаем/размораживаем ВСЕ выделенные объекты
+                elif event.button == 2:  # СКМ (Заморозка объекта)
                     for node in app.selected_nodes:
                         node.is_static = not node.is_static
                         if node.is_static:
@@ -157,8 +163,21 @@ class InputHandler:
                 if app.is_selecting:
                     app.selection_current = event.pos
 
+                # Движение камеры
+                if getattr(app, 'is_panning', False):
+                    mx, my = event.pos
+                    smx, smy = app.pan_start_mouse
+                    dx = mx - smx
+                    dy = my - smy
+
+                    eff_scale = app.scale * app.camera.zoom
+                    # Сдвигаются физические координаты камеры пропорционально пикселям мыши
+                    app.camera.x = app.pan_start_camera[0] - dx / eff_scale
+                    app.camera.y = app.pan_start_camera[1] + dy / eff_scale
+
             elif event.type == pygame.MOUSEBUTTONUP:
                 if event.button == 1:
+                    app.is_panning = False
                     if app.dragged_obj and app.dragged_obj.is_static:
                         app.dragged_obj.velocity = [0.0, 0.0]
                         app.dragged_obj.angular_velocity = 0.0
@@ -171,13 +190,10 @@ class InputHandler:
 
                     # Защита от случайного клика (рамка должна быть хотя бы 5 пикселей)
                     if abs(x2 - x1) > 5 and abs(y2 - y1) > 5:
-                        min_x, max_x = min(x1, x2), max(x1, x2)
-                        min_y, max_y = min(y1, y2), max(y1, y2)
-
-                        # Перевод экранной рамки в физические координаты
-                        phys_min_x, phys_max_x = min_x / app.scale, max_x / app.scale
-                        phys_min_y = (app.height - max_y) / app.scale
-                        phys_max_y = (app.height - min_y) / app.scale
+                        phys_x1, phys_y1 = app.camera.screen_to_phys(x1, y1, app.scale)
+                        phys_x2, phys_y2 = app.camera.screen_to_phys(x2, y2, app.scale)
+                        phys_min_x, phys_max_x = min(phys_x1, phys_x2), max(phys_x1, phys_x2)
+                        phys_min_y, phys_max_y = min(phys_y1, phys_y2), max(phys_y1, phys_y2)
 
                         # Поиск всех узлов внутри рамки
                         for obj in app.sim.objects:
@@ -199,15 +215,21 @@ class InputHandler:
             # Обработка нажатий клавиш на клавиатуре
             elif event.type == pygame.KEYDOWN:
 
-                # Управление временем (НОВОЕ)
+                # Управление временем
                 if event.key == pygame.K_SPACE:
                     app.is_paused = not app.is_paused
                 elif event.key == pygame.K_UP:
-                    # Ускоряем, но не больше 1.0 (начальная скорость)
+                    # Ускоряет, но не больше 1.0 (начальная скорость)
                     app.time_scale = min(1.0, app.time_scale + 0.1)
                 elif event.key == pygame.K_DOWN:
-                    # Замедляем, но не меньше 0.1
+                    # Замедляет, но не меньше 0.1
                     app.time_scale = max(0.1, app.time_scale - 0.1)
+
+                elif event.key == pygame.K_f:
+                    if len(app.selected_nodes) == 1:
+                        app.camera.target = app.selected_nodes[0]
+                    else:
+                        app.camera.target = None
 
                 # Управление моторами
                 elif event.key == pygame.K_a:
@@ -365,12 +387,10 @@ class InputHandler:
                 elif event.key == pygame.K_v and is_ctrl:
                     if app.clipboard is not None and "nodes" in app.clipboard:
                         mx, my = pygame.mouse.get_pos()
-                        phys_mx = mx / app.scale
-                        phys_my = (app.height - my) / app.scale
+                        phys_mx, phys_my = app.camera.screen_to_phys(mx, my, app.scale)
 
                         new_nodes = []
 
-                        # Сбрасываем старое выделение, чтобы выделить вставленную структуру
                         app.selected_nodes.clear()
                         app.selected_springs.clear()
 

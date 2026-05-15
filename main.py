@@ -24,6 +24,7 @@ from physics.objects import Object, MotorWheel
 from physics.simulation import PhysicSimulation
 from ui.inspector import InspectorHUD
 from input_handler import InputHandler
+from camera import Camera
 
 FPS = 1000
 SCALE = 80.0
@@ -64,6 +65,10 @@ class SimulationApp:
         self.selection_start = (0, 0)
         self.selection_current = (0, 0)
 
+        self.is_panning = False
+        self.pan_start_mouse = (0, 0)
+        self.pan_start_camera = (0.0, 0.0)
+
         self.is_paused = False
         self.time_scale = 1.0  # От 0.1 до 1.0
 
@@ -77,6 +82,10 @@ class SimulationApp:
         self.inspector = InspectorHUD()
         self.input_handler = InputHandler(self)
 
+        self.camera = Camera(self.width, self.height)
+        self.camera.x = phys_width / 2
+        self.camera.y = phys_height / 2
+
     @staticmethod
     def get_ball_surface(obj: Object, scale: float = 20):
         """
@@ -88,7 +97,7 @@ class SimulationApp:
         :return: Сгенерированная текстура с поддержкой прозрачности (Alpha-канал).
         :rtype: pygame.surface
         """
-        if obj.surface is not None:
+        if obj.surface is not None and obj.surface_scale == scale:
             return obj.surface
 
         draw_radius = max(3, int(obj.radius * scale))
@@ -111,6 +120,7 @@ class SimulationApp:
                            max(1, draw_radius // 8))
 
         obj.surface = surf
+        obj.surface_scale = scale
         return surf
 
     @staticmethod
@@ -156,6 +166,7 @@ class SimulationApp:
 
         :param dt: Базовый шаг времени, прошедший с прошлого кадра (в секундах).
         """
+        self.camera.update(dt)
 
         # Шаг времени умножается на множитель (или обнуляется, если пауза)
         scaled_dt = 0.0 if self.is_paused else dt * self.time_scale
@@ -163,10 +174,9 @@ class SimulationApp:
         if scaled_dt == 0.0:
             if self.dragged_obj:
                 mx, my = pygame.mouse.get_pos()
-                phys_mx = mx / self.scale
-                phys_my = (self.height - my) / self.scale
+                phys_mx, phys_my = self.camera.screen_to_phys(mx, my, self.scale)
                 self.dragged_obj.location = [phys_mx + self.drag_offset[0], phys_my + self.drag_offset[1]]
-                self.dragged_obj.velocity = [0.0, 0.0]  # Гасим скорость, чтобы не улетел после снятия с паузы
+                self.dragged_obj.velocity = [0.0, 0.0]
             return
 
         for obj in self.sim.objects:
@@ -176,14 +186,13 @@ class SimulationApp:
         # Корректируется положение ДО расчета шага физики
         if self.dragged_obj:
             mx, my = pygame.mouse.get_pos()
-            phys_mx = mx / self.scale
-            phys_my = (self.height - my) / self.scale
+            phys_mx, phys_my = self.camera.screen_to_phys(mx, my, self.scale)
             target_x = phys_mx + self.drag_offset[0]
             target_y = phys_my + self.drag_offset[1]
             if scaled_dt > 0:
-                self.dragged_obj.velocity[0] = (target_x - self.dragged_obj.location[0]) / dt
-                self.dragged_obj.velocity[1] = (target_y - self.dragged_obj.location[1]) / dt
-            self.dragged_obj.location = [target_x, target_y]
+                # Умножается на 15.0 (мягкая привязка)
+                self.dragged_obj.velocity[0] = (target_x - self.dragged_obj.location[0]) * 15.0
+                self.dragged_obj.velocity[1] = (target_y - self.dragged_obj.location[1]) * 15.0
 
         # Шаг физической симуляции
         substeps = 10  # Дробится шаг на 10 частей
@@ -194,15 +203,6 @@ class SimulationApp:
                     obj.apply_motor(sub_dt)
             self.sim.step(sub_dt)
 
-        # Дублируется прижатие ПОСЛЕ расчета шага физики, чтобы убрать дрожание
-        if self.dragged_obj:
-            mx, my = pygame.mouse.get_pos()
-            phys_mx = mx / self.scale
-            phys_my = (self.height - my) / self.scale
-            target_x = phys_mx + self.drag_offset[0]
-            target_y = phys_my + self.drag_offset[1]
-            self.dragged_obj.location = [target_x, target_y]
-
     def draw_scene(self):
         """
         Очистка окна и полная отрисовка всех графических элементов сцены.
@@ -210,6 +210,23 @@ class SimulationApp:
         отрисовку узлов, инспектора свойств (HUD) выделенного объекта и вывод телеметрии.
         """
         self.screen.fill((30, 30, 30))
+        eff_scale = self.scale * self.camera.zoom
+
+        borders = self.sim.Area.get_border()
+        max_x, max_y = borders[0]
+        min_x, min_y = borders[1]
+
+        # Переводим углы физического мира в экранные пиксели (через камеру)
+        screen_min_x, screen_min_y = self.camera.phys_to_screen(min_x, max_y, self.scale)
+        screen_max_x, screen_max_y = self.camera.phys_to_screen(max_x, min_y, self.scale)
+
+        rect_width = screen_max_x - screen_min_x
+        rect_height = screen_max_y - screen_min_y
+
+        border_rect = pygame.Rect(screen_min_x, screen_min_y, rect_width, rect_height)
+
+        # Рисуем темно-зеленую рамку (шириной 3 пикселя)
+        pygame.draw.rect(self.screen, (50, 100, 50), border_rect, 3)
 
         # Отрисовка балок
         for spring in self.sim.springs:
@@ -218,8 +235,8 @@ class SimulationApp:
 
             p1_x, p1_y = spring.obj1.get_location()
             p2_x, p2_y = spring.obj2.get_location()
-            start_pos = (int(p1_x * self.scale), int(self.height - (p1_y * self.scale)))
-            end_pos = (int(p2_x * self.scale), int(self.height - (p2_y * self.scale)))
+            start_pos = self.camera.phys_to_screen(p1_x, p1_y, self.scale)
+            end_pos = self.camera.phys_to_screen(p2_x, p2_y, self.scale)
 
             strain = spring.current_strain
             factor = min(1.0, abs(strain) / spring.yield_limit)
@@ -228,7 +245,7 @@ class SimulationApp:
             else:  # Сжатие (Тенденция к синему)
                 color = (0, int(255 * (1 - factor)), int(255 * factor))
 
-            thickness = max(1, min(8, int(spring.k / 3000)))
+            thickness = max(1, min(8, int(spring.k / 3000 * self.camera.zoom)))
             pygame.draw.line(self.screen, color, start_pos, end_pos, thickness)
 
             if spring in self.selected_springs:
@@ -237,25 +254,23 @@ class SimulationApp:
         # Отрисовка узлов
         for obj in self.sim.objects:
             x, y = obj.get_location()
-            screen_x = int(x * self.scale)
-            screen_y = int(self.height - (y * self.scale))
+            screen_x, screen_y = self.camera.phys_to_screen(x, y, self.scale)
 
-            surf = self.get_ball_surface(obj, scale=self.scale)
-            draw_radius = surf.get_width() // 2
-            self.screen.blit(surf, (screen_x - draw_radius, screen_y - draw_radius))
+            surf = self.get_ball_surface(obj, scale=eff_scale)
 
             angle_degrees = math.degrees(obj.angle)
             rotated_surf = pygame.transform.rotate(surf, angle_degrees)
-
             rect = rotated_surf.get_rect(center=(screen_x, screen_y))
             self.screen.blit(rotated_surf, rect.topleft)
 
             if obj.is_static:
-                pygame.draw.circle(self.screen, (255, 50, 50), (screen_x, screen_y), 6)
-                pygame.draw.circle(self.screen, (0, 0, 0), (screen_x, screen_y), 6, 2)
+                frozen_radius = max(2, int(6 * self.camera.zoom))
+                pygame.draw.circle(self.screen, (255, 50, 50), (screen_x, screen_y), frozen_radius)
+                pygame.draw.circle(self.screen, (0, 0, 0), (screen_x, screen_y), frozen_radius,
+                                   max(1, int(2 * self.camera.zoom)))
 
             if obj in self.selected_nodes:
-                pygame.draw.circle(self.screen, (255, 215, 0), (screen_x, screen_y), int(obj.radius * SCALE) + 4, 3)
+                pygame.draw.circle(self.screen, (255, 215, 0), (screen_x, screen_y), int(obj.radius * eff_scale) + 4, 3)
 
         # Отрисовка рамки выделения
         if self.is_selecting:
@@ -272,6 +287,7 @@ class SimulationApp:
             f"Time:    {self.sim.time:.2f}s",
             f"Speed:   {'[PAUSED]' if self.is_paused else f'{self.time_scale:.1f}x'}",
             f"FPS:     {self.clock.get_fps():.0f}",
+            f"Zoom:    {self.camera.zoom:.2f}x",
             f"Nodes:   {len(self.sim.objects)}",
             f"Beams:   {len(self.sim.springs)}"
         ]
@@ -282,9 +298,9 @@ class SimulationApp:
             self.screen.blit(text_surface, (20, 20 + i * 22))
 
         if len(self.selected_nodes) == 1 and len(self.selected_springs) == 0:
-            self.inspector.draw(self.screen, self.selected_nodes[0], self.scale, self.width, self.height)
+            self.inspector.draw(self.screen, self.selected_nodes[0], self.scale, self.camera, self.width, self.height)
         elif len(self.selected_springs) == 1 and len(self.selected_nodes) == 0:
-            self.inspector.draw(self.screen, self.selected_springs[0], self.scale, self.width, self.height)
+            self.inspector.draw(self.screen, self.selected_springs[0], self.scale, self.camera, self.width, self.height)
 
         pygame.display.flip()
 
