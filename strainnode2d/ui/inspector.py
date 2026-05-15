@@ -29,6 +29,7 @@ class InspectorHUD:
         self.font = pygame.font.SysFont("Consolas", 14)
         self.bg_color = (25, 25, 30, 210)
         self.border_color = (100, 150, 255, 255)
+        self.change_btn_rect = None
 
     def draw(self, screen: pygame.Surface, target: Union[Object, Spring], scale: float,
              camera: Camera, screen_width: int, screen_height: int)-> None:
@@ -81,7 +82,7 @@ class InspectorHUD:
             strain_pct = (target.current_strain / target.yield_limit) * 100 if target.yield_limit else 0
 
             lines.extend([
-                "----- Пружина / Балка -----",
+                f"--- {target.__class__.__name__} ---",
                 f"Жесткость: {target.k:.0f}",
                 f"Демпфер:   {target.d:.0f}",
                 f"Натяжение: {target.current_strain:.2f} м",
@@ -97,16 +98,17 @@ class InspectorHUD:
         padding = 12
         bg_width, bg_height = max_width + padding * 2, total_height + padding * 2
 
+        btn_height = 25
+        if isinstance(target, Spring): # Если это балка, увеличивает высоту фона, чтобы влезла кнопка
+            bg_height += btn_height + 10
+
         # Перевод физических координат в экранные
         screen_x, screen_y = camera.phys_to_screen(anchor_x, anchor_y, scale)
 
         margin_px = 20  # Внешний отступ от желтой обводки (в пикселях)
         eff_scale = scale * camera.zoom  # Эффективный масштаб для учета зума
 
-        if isinstance(target, Object):
-            offset_x = int(target.radius * eff_scale) + margin_px
-        else:
-            offset_x = 25
+        offset_x = int(target.radius * eff_scale) + margin_px if isinstance(target, Object) else 25
 
         hud_x, hud_y = screen_x + offset_x, screen_y - bg_height // 2
 
@@ -129,3 +131,17 @@ class InspectorHUD:
         for surf in rendered_lines:
             screen.blit(surf, (hud_x + padding, curr_y))
             curr_y += surf.get_height() + 2
+
+        # Отрисовка кнопки и сохранение её хитбокса
+        self.change_btn_rect = None
+        if isinstance(target, Spring):
+            curr_y += 5
+            btn_rect = pygame.Rect(hud_x + padding, curr_y, bg_width - padding * 2, btn_height)
+            pygame.draw.rect(screen, (70, 100, 200), btn_rect, border_radius=5)
+
+            btn_text = self.font.render("Изменить тип", True, (255, 255, 255))
+            text_x = btn_rect.centerx - btn_text.get_width() // 2
+            text_y = btn_rect.centery - btn_text.get_height() // 2
+            screen.blit(btn_text, (text_x, text_y))
+
+            self.change_btn_rect = btn_rect  # Запоминает для обработчика кликов

@@ -19,6 +19,9 @@
 import pygame
 import sys
 import math
+import os
+import time
+from pypresence import Presence
 from strainnode2d.physics.area import Area
 from strainnode2d.physics.objects import Object, MotorWheel
 from strainnode2d.physics.simulation import PhysicSimulation
@@ -85,6 +88,20 @@ class SimulationApp:
         self.camera = Camera(self.width, self.height)
         self.camera.x = phys_width / 2
         self.camera.y = phys_height / 2
+
+        # Инициализация Discord RPC
+        self.client_id = 1504956012195479572
+        self.rpc = None
+        self.last_rpc_update = 0
+        self.session_start_time = int(time.time())
+
+        try:
+            self.rpc = Presence(self.client_id)
+            self.rpc.connect()
+            print("Discord RPC подключен успешно!")
+        except Exception as e:
+            self.rpc = None
+            print(f"Discord не запущен или ошибка подключения: {e}")
 
     @staticmethod
     def get_ball_surface(obj: Object, scale: float = 20):
@@ -304,6 +321,25 @@ class SimulationApp:
 
         pygame.display.flip()
 
+    def update_discord_status(self):
+        """Обновление активности в Discord (лимит: 1 раз в 15 секунд)."""
+        if self.rpc and (time.time() - self.last_rpc_update > 15):
+            try:
+                state_str = "Симуляция на паузе" if self.is_paused else "В движении"
+                details_str = f"Nodes: {len(self.sim.objects)} | Beams: {len(self.sim.springs)}"
+
+                self.rpc.update(
+                    state=state_str,
+                    details=details_str,
+                    large_image="StrainNode2D Logo",
+                    large_text="StrainNode2D Engine",
+                    start=self.session_start_time
+                )
+                self.last_rpc_update = time.time()
+            except Exception as e:
+                self.rpc = None
+                print(f"Ошибка обновления Discord RPC: {e}")
+
     def run(self):
         """
         Запуск основного игрового цикла (Game Loop).
@@ -317,6 +353,7 @@ class SimulationApp:
             self.input_handler.handle_events(dt)
             self.update_physics(dt)
             self.draw_scene()
+            self.update_discord_status()
 
         pygame.quit()
         sys.exit()
