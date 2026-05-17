@@ -92,7 +92,7 @@ class InputHandler:
                                 elif new_type == "Beam":
                                     new_link = Beam(obj1, obj2)
                                 elif new_type == "AeroBeam":
-                                    new_link = AeroBeam(obj1, obj2, lift_coef=2.5)
+                                    new_link = AeroBeam(obj1, obj2, lift_coef=2.5, chord=2.0)
 
                                 if new_link:
                                     app.sim.add_spring(new_link)
