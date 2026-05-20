@@ -30,6 +30,7 @@ class InspectorHUD:
         self.bg_color = (25, 25, 30, 210)
         self.border_color = (100, 150, 255, 255)
         self.change_btn_rect = None
+        self.flip_btn_rect = None
 
     def draw(self, screen: pygame.Surface, target: Union[Object, Spring], scale: float,
              camera: Camera, screen_width: int, screen_height: int)-> None:
@@ -101,6 +102,8 @@ class InspectorHUD:
         btn_height = 25
         if isinstance(target, Spring): # Если это балка, увеличивает высоту фона, чтобы влезла кнопка
             bg_height += btn_height + 10
+            if target.__class__.__name__ == "AeroBeam":
+                bg_height += btn_height + 5
 
         # Перевод физических координат в экранные
         screen_x, screen_y = camera.phys_to_screen(anchor_x, anchor_y, scale)
@@ -133,7 +136,6 @@ class InspectorHUD:
             curr_y += surf.get_height() + 2
 
         # Отрисовка кнопки и сохранение её хитбокса
-        self.change_btn_rect = None
         if isinstance(target, Spring):
             curr_y += 5
             btn_rect = pygame.Rect(hud_x + padding, curr_y, bg_width - padding * 2, btn_height)
@@ -143,5 +145,13 @@ class InspectorHUD:
             text_x = btn_rect.centerx - btn_text.get_width() // 2
             text_y = btn_rect.centery - btn_text.get_height() // 2
             screen.blit(btn_text, (text_x, text_y))
-
             self.change_btn_rect = btn_rect  # Запоминает для обработчика кликов
+
+            if target.__class__.__name__ == "AeroBeam":
+                curr_y += btn_height + 5
+                flip_rect = pygame.Rect(hud_x + padding, curr_y, bg_width - padding * 2, btn_height)
+                pygame.draw.rect(screen, (200, 100, 70), flip_rect, border_radius=5)
+                flip_text = self.font.render("Повернуть нормаль", True, (255, 255, 255))
+                screen.blit(flip_text, (flip_rect.centerx - flip_text.get_width() // 2,
+                                        flip_rect.centery - flip_text.get_height() // 2))
+                self.flip_btn_rect = flip_rect

@@ -68,10 +68,19 @@ class InputHandler:
                 if event.button == 1:  # ЛКМ (Выделение или перетаскивание)
 
                     # Перехват клика по кнопке инспектора
-                    if len(app.selected_springs) == 1 and app.inspector.change_btn_rect:
-                        # Проверка пересечения экранных координат мыши (mx, my) с прямоугольником кнопки
-                        if app.inspector.change_btn_rect.collidepoint(mx, my):
-                            target_spring = app.selected_springs[0]
+                    if len(app.selected_springs) == 1:
+                        target_spring = app.selected_springs[0]
+
+                        # Проверка клика по новой кнопке "Повернуть нормаль"
+                        if getattr(app.inspector, 'flip_btn_rect',
+                                   None) and app.inspector.flip_btn_rect.collidepoint(mx, my):
+                            if target_spring.__class__.__name__ == "AeroBeam":
+                                target_spring.normal_flip *= -1
+                            continue
+
+                        if getattr(app.inspector, 'change_btn_rect',
+                                   None) and app.inspector.change_btn_rect.collidepoint(mx, my):
+
                             obj1, obj2 = target_spring.obj1, target_spring.obj2
 
                             # Вызов окна Tkinter
@@ -252,6 +261,9 @@ class InputHandler:
                 # Управление временем
                 if event.key == pygame.K_SPACE:
                     app.is_paused = not app.is_paused
+                elif event.key == pygame.K_TAB:
+                    # Включает/Выключает режим отладки
+                    app.debug_mode = not getattr(app, 'debug_mode', False)
                 elif event.key == pygame.K_UP:
                     # Ускоряет, но не больше 1.0 (начальная скорость)
                     app.time_scale = min(1.0, app.time_scale + 0.1)

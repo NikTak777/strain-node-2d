@@ -315,6 +315,31 @@ class SimulationApp:
             text_surface = self.font.render(text_line, True, color)
             self.screen.blit(text_surface, (20, 20 + i * 22))
 
+        if getattr(self, 'debug_mode', False):
+            for spring in self.sim.springs:
+                if spring.__class__.__name__ == "AeroBeam":
+                    x1, y1 = spring.obj1.get_location()
+                    x2, y2 = spring.obj2.get_location()
+                    cx, cy = (x1 + x2) / 2, (y1 + y2) / 2
+                    L = math.sqrt((x2 - x1) ** 2 + (y2 - y1) ** 2)
+                    if L == 0: continue
+
+                    # Считаем нормаль
+                    nx = (-(y2 - y1) / L) * spring.normal_flip
+                    ny = ((x2 - x1) / L) * spring.normal_flip
+
+                    # Длина стрелки (в физических метрах, например 1.5 метра)
+                    arrow_len = 1.5
+                    end_x, end_y = cx + nx * arrow_len, cy + ny * arrow_len
+
+                    # Переводим в экранные координаты
+                    sc_cx, sc_cy = self.camera.phys_to_screen(cx, cy, self.scale)
+                    sc_ex, sc_ey = self.camera.phys_to_screen(end_x, end_y, self.scale)
+
+                    # Рисуем красивую желтую линию
+                    pygame.draw.line(self.screen, (255, 255, 0), (sc_cx, sc_cy), (sc_ex, sc_ey), 2)
+                    pygame.draw.circle(self.screen, (255, 50, 50), (int(sc_ex), int(sc_ey)), 4)
+
         if len(self.selected_nodes) == 1 and len(self.selected_springs) == 0:
             self.inspector.draw(self.screen, self.selected_nodes[0], self.scale, self.camera, self.width, self.height)
         elif len(self.selected_springs) == 1 and len(self.selected_nodes) <= 2:

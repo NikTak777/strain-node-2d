@@ -276,6 +276,8 @@ class AeroBeam(Spring):
         self.base_drag = base_drag
         self.induced_drag = induced_drag
 
+        self.normal_flip = kwargs.get('normal_flip', 1)
+
     def update(self, dt: float, air_density: float = 1.29):
         super().update(dt)
 
@@ -303,13 +305,17 @@ class AeroBeam(Spring):
         v_norm_x = vx / v_mag
         v_norm_y = vy / v_mag
 
-        # Нормаль к балке (повернута на 90 градусов относительно самой балки)
-        nx = -dy / L
-        ny = dx / L
+        # Нормаль к балке (с учетом переворота)
+        nx = (-dy / L) * self.normal_flip
+        ny = (dx / L) * self.normal_flip
 
         # Угол атаки (скалярное произведение скорости на нормаль)
         # sin_alpha = 1 (летит плашмя), sin_alpha = 0 (летит вдоль потока, как копье)
         sin_alpha = v_norm_x * nx + v_norm_y * ny
+
+        # Аэродинамическая тень
+        if sin_alpha <= 0:
+            return
 
         # cos_alpha нужен для расчета подъемной силы крыла
         cos_alpha = math.sqrt(max(0.0, 1.0 - sin_alpha ** 2))
