@@ -269,14 +269,14 @@ class AeroBeam(Spring):
         """
         kwargs.setdefault('k', 50000.0)
         kwargs.setdefault('d', 500.0)
+        self.normal_flip = kwargs.pop('normal_flip', 1)
+
         super().__init__(obj1, obj2, **kwargs)
 
         self.chord = chord
         self.lift_coef = lift_coef
         self.base_drag = base_drag
         self.induced_drag = induced_drag
-
-        self.normal_flip = kwargs.get('normal_flip', 1)
 
     def update(self, dt: float, air_density: float = 1.29):
         super().update(dt)

@@ -90,3 +90,18 @@ class MotorWheel(Object):
         """
         if self.direction != 0:
             self.angular_velocity += self.direction * self.power * dt
+
+
+class StructuralNode(Object):
+    def __init__(self, x: float, y: float, radius: float = 10.0, **kwargs):
+        """
+        Структурный узел, обладает бесконечным моментом инерции из-за чего физически не может вращаться.
+        """
+        # По умолчанию делаем каркас менее прыгучим, чем обычные мячи
+        kwargs.setdefault('restitution', 0.1)
+        # Трение металла об асфальт (будет скользить)
+        kwargs.setdefault('friction', 0.5)
+
+        super().__init__(x, y, radius=radius, **kwargs)
+        self.I = float('inf')
+        self.angular_velocity = 0.0

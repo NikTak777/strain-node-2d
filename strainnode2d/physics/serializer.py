@@ -17,7 +17,7 @@
 """
 
 import json
-from strainnode2d.physics.objects import Object, MotorWheel
+from strainnode2d.physics.objects import Object, MotorWheel, StructuralNode
 from strainnode2d.physics.springs import Spring, Rope, Hydraulic, Beam, AeroBeam
 
 
@@ -83,6 +83,7 @@ def save_scene(sim, filename):
             spring_data["lift_coef"] = spring.lift_coef
             spring_data["base_drag"] = spring.base_drag
             spring_data["induced_drag"] = spring.induced_drag
+            spring_data["normal_flip"] = getattr(spring, 'normal_flip', 1)
 
         data["springs"].append(spring_data)
 
@@ -121,6 +122,8 @@ def load_scene(sim, filename):
         if obj_type == "MotorWheel":
             kwargs["power"] = obj_data.get("power", 500.0)
             obj = MotorWheel(**kwargs)
+        elif obj_type == "StructuralNode":
+            obj = StructuralNode(**kwargs)
         else:
             obj = Object(**kwargs)
 
@@ -166,6 +169,7 @@ def load_scene(sim, filename):
             kwargs["lift_coef"] = spring_data.get("lift_coef", 1.5)
             kwargs["base_drag"] = spring_data.get("base_drag", 0.1)
             kwargs["induced_drag"] = spring_data.get("induced_drag", 1.0)
+            kwargs["normal_flip"] = spring_data.get("normal_flip", 1)
             spring = AeroBeam(obj1, obj2, **kwargs)
         else:
             # Фолбэк на обычную пружину

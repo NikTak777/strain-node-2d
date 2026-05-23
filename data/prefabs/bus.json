@@ -1,0 +1,1668 @@
+{
+    "objects": [
+        {
+            "id": 0,
+            "type": "MotorWheel",
+            "x": 4.712074310413578,
+            "y": 0.4,
+            "radius": 0.4,
+            "velocity": [
+                0.0,
+                0.0
+            ],
+            "density": 100.0,
+            "restitution": 0.5,
+            "friction": 0.8,
+            "color": [
+                255,
+                50,
+                50
+            ],
+            "is_static": false,
+            "angle": 1.7143492901795157,
+            "angular_velocity": 7.653638558863686e-13,
+            "power": 200.0
+        },
+        {
+            "id": 1,
+            "type": "Object",
+            "x": 3.56626473398298,
+            "y": 0.4,
+            "radius": 0.4,
+            "velocity": [
+                0.0,
+                0.0
+            ],
+            "density": 100.0,
+            "restitution": 0.5,
+            "friction": 0.8,
+            "color": [
+                255,
+                50,
+                50
+            ],
+            "is_static": false,
+            "angle": 2.3717422470245655,
+            "angular_velocity": -7.653638558863686e-13
+        },
+        {
+            "id": 2,
+            "type": "Object",
+            "x": 9.707190595067914,
+            "y": 0.4,
+            "radius": 0.4,
+            "velocity": [
+                0.0,
+                0.0
+            ],
+            "density": 100.0,
+            "restitution": 0.5,
+            "friction": 0.8,
+            "color": [
+                255,
+                50,
+                50
+            ],
+            "is_static": false,
+            "angle": 1.0203683466181106,
+            "angular_velocity": 0.0
+        },
+        {
+            "id": 3,
+            "type": "StructuralNode",
+            "x": 5.3214500908083675,
+            "y": 0.36877693398206857,
+            "radius": 0.1,
+            "velocity": [
+                0.0,
+                0.0
+            ],
+            "density": 9500.0,
+            "restitution": 0.5,
+            "friction": 0.5,
+            "color": [
+                50,
+                50,
+                255
+            ],
+            "is_static": false,
+            "angle": 0.0,
+            "angular_velocity": 0.0
+        },
+        {
+            "id": 4,
+            "type": "StructuralNode",
+            "x": 6.531450090808368,
+            "y": 0.368776933982069,
+            "radius": 0.1,
+            "velocity": [
+                0.0,
+                0.0
+            ],
+            "density": 9500.0,
+            "restitution": 0.5,
+            "friction": 0.5,
+            "color": [
+                50,
+                50,
+                255
+            ],
+            "is_static": false,
+            "angle": 0.0,
+            "angular_velocity": 0.0
+        },
+        {
+            "id": 5,
+            "type": "StructuralNode",
+            "x": 7.841450090808367,
+            "y": 0.368776933982069,
+            "radius": 0.1,
+            "velocity": [
+                0.0,
+                0.0
+            ],
+            "density": 9500.0,
+            "restitution": 0.5,
+            "friction": 0.5,
+            "color": [
+                50,
+                50,
+                255
+            ],
+            "is_static": false,
+            "angle": 0.0,
+            "angular_velocity": 0.0
+        },
+        {
+            "id": 6,
+            "type": "StructuralNode",
+            "x": 9.101450090808367,
+            "y": 0.36877693398206857,
+            "radius": 0.1,
+            "velocity": [
+                0.0,
+                0.0
+            ],
+            "density": 9500.0,
+            "restitution": 0.5,
+            "friction": 0.5,
+            "color": [
+                50,
+                50,
+                255
+            ],
+            "is_static": false,
+            "angle": 0.0,
+            "angular_velocity": 0.0
+        },
+        {
+            "id": 7,
+            "type": "StructuralNode",
+            "x": 9.361450090808365,
+            "y": 0.8987769339820697,
+            "radius": 0.1,
+            "velocity": [
+                0.0,
+                0.0
+            ],
+            "density": 9500.0,
+            "restitution": 0.5,
+            "friction": 0.5,
+            "color": [
+                50,
+                50,
+                255
+            ],
+            "is_static": false,
+            "angle": 0.0,
+            "angular_velocity": 0.0
+        },
+        {
+            "id": 8,
+            "type": "StructuralNode",
+            "x": 10.04145009080837,
+            "y": 0.8987769339820697,
+            "radius": 0.1,
+            "velocity": [
+                0.0,
+                0.0
+            ],
+            "density": 9500.0,
+            "restitution": 0.5,
+            "friction": 0.5,
+            "color": [
+                50,
+                50,
+                255
+            ],
+            "is_static": false,
+            "angle": 0.0,
+            "angular_velocity": 0.0
+        },
+        {
+            "id": 9,
+            "type": "StructuralNode",
+            "x": 10.331450090808369,
+            "y": 0.35877693398206967,
+            "radius": 0.1,
+            "velocity": [
+                0.0,
+                0.0
+            ],
+            "density": 9500.0,
+            "restitution": 0.5,
+            "friction": 0.5,
+            "color": [
+                50,
+                50,
+                255
+            ],
+            "is_static": false,
+            "angle": 0.0,
+            "angular_velocity": 0.0
+        },
+        {
+            "id": 10,
+            "type": "StructuralNode",
+            "x": 10.971450090808366,
+            "y": 0.3487769339820699,
+            "radius": 0.1,
+            "velocity": [
+                0.0,
+                0.0
+            ],
+            "density": 9500.0,
+            "restitution": 0.5,
+            "friction": 0.5,
+            "color": [
+                50,
+                50,
+                255
+            ],
+            "is_static": false,
+            "angle": 0.0,
+            "angular_velocity": 0.0
+        },
+        {
+            "id": 11,
+            "type": "StructuralNode",
+            "x": 5.071450090808368,
+            "y": 0.8887769339820695,
+            "radius": 0.1,
+            "velocity": [
+                0.0,
+                0.0
+            ],
+            "density": 9500.0,
+            "restitution": 0.5,
+            "friction": 0.5,
+            "color": [
+                50,
+                50,
+                255
+            ],
+            "is_static": false,
+            "angle": 0.0,
+            "angular_velocity": 0.0
+        },
+        {
+            "id": 12,
+            "type": "StructuralNode",
+            "x": 4.161450090808368,
+            "y": 0.8887769339820695,
+            "radius": 0.1,
+            "velocity": [
+                0.0,
+                0.0
+            ],
+            "density": 9500.0,
+            "restitution": 0.5,
+            "friction": 0.5,
+            "color": [
+                50,
+                50,
+                255
+            ],
+            "is_static": false,
+            "angle": 0.0,
+            "angular_velocity": 0.0
+        },
+        {
+            "id": 13,
+            "type": "StructuralNode",
+            "x": 3.161450090808367,
+            "y": 0.8887769339820695,
+            "radius": 0.1,
+            "velocity": [
+                0.0,
+                0.0
+            ],
+            "density": 9500.0,
+            "restitution": 0.5,
+            "friction": 0.5,
+            "color": [
+                50,
+                50,
+                255
+            ],
+            "is_static": false,
+            "angle": 0.0,
+            "angular_velocity": 0.0
+        },
+        {
+            "id": 14,
+            "type": "StructuralNode",
+            "x": 2.9214500908083685,
+            "y": 0.39877693398207015,
+            "radius": 0.1,
+            "velocity": [
+                0.0,
+                0.0
+            ],
+            "density": 9500.0,
+            "restitution": 0.5,
+            "friction": 0.5,
+            "color": [
+                50,
+                50,
+                255
+            ],
+            "is_static": false,
+            "angle": 0.0,
+            "angular_velocity": 0.0
+        },
+        {
+            "id": 15,
+            "type": "StructuralNode",
+            "x": 2.3214500908083684,
+            "y": 0.3987769339820706,
+            "radius": 0.1,
+            "velocity": [
+                0.0,
+                0.0
+            ],
+            "density": 9500.0,
+            "restitution": 0.5,
+            "friction": 0.5,
+            "color": [
+                50,
+                50,
+                255
+            ],
+            "is_static": false,
+            "angle": 0.0,
+            "angular_velocity": 0.0
+        },
+        {
+            "id": 16,
+            "type": "StructuralNode",
+            "x": 10.971450090808366,
+            "y": 1.6087769339820697,
+            "radius": 0.1,
+            "velocity": [
+                0.0,
+                0.0
+            ],
+            "density": 9500.0,
+            "restitution": 0.5,
+            "friction": 0.5,
+            "color": [
+                50,
+                50,
+                255
+            ],
+            "is_static": false,
+            "angle": 0.0,
+            "angular_velocity": 0.0
+        },
+        {
+            "id": 17,
+            "type": "StructuralNode",
+            "x": 2.3314500908083677,
+            "y": 1.60877693398207,
+            "radius": 0.1,
+            "velocity": [
+                0.0,
+                0.0
+            ],
+            "density": 9500.0,
+            "restitution": 0.5,
+            "friction": 0.5,
+            "color": [
+                50,
+                50,
+                255
+            ],
+            "is_static": false,
+            "angle": 0.0,
+            "angular_velocity": 0.0
+        },
+        {
+            "id": 18,
+            "type": "StructuralNode",
+            "x": 4.161450090808369,
+            "y": 1.6087769339820706,
+            "radius": 0.1,
+            "velocity": [
+                0.0,
+                0.0
+            ],
+            "density": 9500.0,
+            "restitution": 0.5,
+            "friction": 0.5,
+            "color": [
+                50,
+                50,
+                255
+            ],
+            "is_static": false,
+            "angle": 0.0,
+            "angular_velocity": 0.0
+        },
+        {
+            "id": 19,
+            "type": "StructuralNode",
+            "x": 5.311450090808368,
+            "y": 1.6087769339820701,
+            "radius": 0.1,
+            "velocity": [
+                0.0,
+                0.0
+            ],
+            "density": 9500.0,
+            "restitution": 0.5,
+            "friction": 0.5,
+            "color": [
+                50,
+                50,
+                255
+            ],
+            "is_static": false,
+            "angle": 0.0,
+            "angular_velocity": 0.0
+        },
+        {
+            "id": 20,
+            "type": "StructuralNode",
+            "x": 6.541450090808367,
+            "y": 1.6087769339820703,
+            "radius": 0.1,
+            "velocity": [
+                0.0,
+                0.0
+            ],
+            "density": 9500.0,
+            "restitution": 0.5,
+            "friction": 0.5,
+            "color": [
+                50,
+                50,
+                255
+            ],
+            "is_static": false,
+            "angle": 0.0,
+            "angular_velocity": 0.0
+        },
+        {
+            "id": 21,
+            "type": "StructuralNode",
+            "x": 7.821450090808369,
+            "y": 1.6087769339820706,
+            "radius": 0.1,
+            "velocity": [
+                0.0,
+                0.0
+            ],
+            "density": 9500.0,
+            "restitution": 0.5,
+            "friction": 0.5,
+            "color": [
+                50,
+                50,
+                255
+            ],
+            "is_static": false,
+            "angle": 0.0,
+            "angular_velocity": 0.0
+        },
+        {
+            "id": 22,
+            "type": "StructuralNode",
+            "x": 9.07145009080837,
+            "y": 1.6087769339820703,
+            "radius": 0.1,
+            "velocity": [
+                0.0,
+                0.0
+            ],
+            "density": 9500.0,
+            "restitution": 0.5,
+            "friction": 0.5,
+            "color": [
+                50,
+                50,
+                255
+            ],
+            "is_static": false,
+            "angle": 0.0,
+            "angular_velocity": 0.0
+        },
+        {
+            "id": 23,
+            "type": "StructuralNode",
+            "x": 3.1614500908083696,
+            "y": 1.608776933982071,
+            "radius": 0.1,
+            "velocity": [
+                0.0,
+                0.0
+            ],
+            "density": 9500.0,
+            "restitution": 0.5,
+            "friction": 0.5,
+            "color": [
+                50,
+                50,
+                255
+            ],
+            "is_static": false,
+            "angle": 0.0,
+            "angular_velocity": 0.0
+        },
+        {
+            "id": 24,
+            "type": "StructuralNode",
+            "x": 10.05145009080837,
+            "y": 1.6087769339820708,
+            "radius": 0.1,
+            "velocity": [
+                0.0,
+                0.0
+            ],
+            "density": 9500.0,
+            "restitution": 0.5,
+            "friction": 0.5,
+            "color": [
+                50,
+                50,
+                255
+            ],
+            "is_static": false,
+            "angle": 0.0,
+            "angular_velocity": 0.0
+        },
+        {
+            "id": 25,
+            "type": "StructuralNode",
+            "x": 10.43145009080837,
+            "y": 2.7087769339820724,
+            "radius": 0.1,
+            "velocity": [
+                0.0,
+                0.0
+            ],
+            "density": 9500.0,
+            "restitution": 0.5,
+            "friction": 0.5,
+            "color": [
+                50,
+                50,
+                255
+            ],
+            "is_static": false,
+            "angle": 0.0,
+            "angular_velocity": 0.0
+        },
+        {
+            "id": 26,
+            "type": "StructuralNode",
+            "x": 3.6314500908083707,
+            "y": 2.7087769339820715,
+            "radius": 0.1,
+            "velocity": [
+                0.0,
+                0.0
+            ],
+            "density": 9500.0,
+            "restitution": 0.5,
+            "friction": 0.5,
+            "color": [
+                50,
+                50,
+                255
+            ],
+            "is_static": false,
+            "angle": 0.0,
+            "angular_velocity": 0.0
+        },
+        {
+            "id": 27,
+            "type": "StructuralNode",
+            "x": 4.75145009080837,
+            "y": 2.708776933982072,
+            "radius": 0.1,
+            "velocity": [
+                0.0,
+                0.0
+            ],
+            "density": 9500.0,
+            "restitution": 0.5,
+            "friction": 0.5,
+            "color": [
+                50,
+                50,
+                255
+            ],
+            "is_static": false,
+            "angle": 0.0,
+            "angular_velocity": 0.0
+        },
+        {
+            "id": 28,
+            "type": "StructuralNode",
+            "x": 5.921450090808371,
+            "y": 2.7087769339820724,
+            "radius": 0.1,
+            "velocity": [
+                0.0,
+                0.0
+            ],
+            "density": 9500.0,
+            "restitution": 0.5,
+            "friction": 0.5,
+            "color": [
+                50,
+                50,
+                255
+            ],
+            "is_static": false,
+            "angle": 0.0,
+            "angular_velocity": 0.0
+        },
+        {
+            "id": 29,
+            "type": "StructuralNode",
+            "x": 7.171450090808371,
+            "y": 2.7087769339820715,
+            "radius": 0.1,
+            "velocity": [
+                0.0,
+                0.0
+            ],
+            "density": 9500.0,
+            "restitution": 0.5,
+            "friction": 0.5,
+            "color": [
+                50,
+                50,
+                255
+            ],
+            "is_static": false,
+            "angle": 0.0,
+            "angular_velocity": 0.0
+        },
+        {
+            "id": 30,
+            "type": "StructuralNode",
+            "x": 9.52145009080837,
+            "y": 2.7087769339820724,
+            "radius": 0.1,
+            "velocity": [
+                0.0,
+                0.0
+            ],
+            "density": 9500.0,
+            "restitution": 0.5,
+            "friction": 0.5,
+            "color": [
+                50,
+                50,
+                255
+            ],
+            "is_static": false,
+            "angle": 0.0,
+            "angular_velocity": 0.0
+        },
+        {
+            "id": 31,
+            "type": "StructuralNode",
+            "x": 8.44145009080837,
+            "y": 2.7087769339820724,
+            "radius": 0.1,
+            "velocity": [
+                0.0,
+                0.0
+            ],
+            "density": 9500.0,
+            "restitution": 0.5,
+            "friction": 0.5,
+            "color": [
+                50,
+                50,
+                255
+            ],
+            "is_static": false,
+            "angle": 0.0,
+            "angular_velocity": 0.0
+        },
+        {
+            "id": 32,
+            "type": "StructuralNode",
+            "x": 2.3314500908083717,
+            "y": 2.698776933982073,
+            "radius": 0.1,
+            "velocity": [
+                0.0,
+                0.0
+            ],
+            "density": 9500.0,
+            "restitution": 0.5,
+            "friction": 0.5,
+            "color": [
+                50,
+                50,
+                255
+            ],
+            "is_static": false,
+            "angle": 0.0,
+            "angular_velocity": 0.0
+        }
+    ],
+    "springs": [
+        {
+            "type": "Spring",
+            "obj1_id": 1,
+            "obj2_id": 0,
+            "k": 300000.0,
+            "d": 3000.0,
+            "yield_limit": 0.1,
+            "break_limit": 0.15,
+            "rest_length": 1.1457966010406562
+        },
+        {
+            "type": "Spring",
+            "obj1_id": 17,
+            "obj2_id": 23,
+            "k": 300000.0,
+            "d": 3000.0,
+            "yield_limit": 0.13,
+            "break_limit": 0.2,
+            "rest_length": 0.8302409288875147
+        },
+        {
+            "type": "Spring",
+            "obj1_id": 13,
+            "obj2_id": 23,
+            "k": 300000.0,
+            "d": 3000.0,
+            "yield_limit": 0.13,
+            "break_limit": 0.2,
+            "rest_length": 0.7200000000000015
+        },
+        {
+            "type": "Spring",
+            "obj1_id": 18,
+            "obj2_id": 23,
+            "k": 300000.0,
+            "d": 3000.0,
+            "yield_limit": 0.13,
+            "break_limit": 0.2,
+            "rest_length": 0.9999999999999996
+        },
+        {
+            "type": "Spring",
+            "obj1_id": 19,
+            "obj2_id": 18,
+            "k": 300000.0,
+            "d": 3000.0,
+            "yield_limit": 0.13,
+            "break_limit": 0.2,
+            "rest_length": 1.1601724009818524
+        },
+        {
+            "type": "Spring",
+            "obj1_id": 19,
+            "obj2_id": 20,
+            "k": 300000.0,
+            "d": 3000.0,
+            "yield_limit": 0.13,
+            "break_limit": 0.2,
+            "rest_length": 1.2300406497347958
+        },
+        {
+            "type": "Spring",
+            "obj1_id": 20,
+            "obj2_id": 21,
+            "k": 300000.0,
+            "d": 3000.0,
+            "yield_limit": 0.13,
+            "break_limit": 0.2,
+            "rest_length": 1.290155029444138
+        },
+        {
+            "type": "Spring",
+            "obj1_id": 21,
+            "obj2_id": 22,
+            "k": 300000.0,
+            "d": 3000.0,
+            "yield_limit": 0.13,
+            "break_limit": 0.2,
+            "rest_length": 1.2501599897613105
+        },
+        {
+            "type": "Spring",
+            "obj1_id": 22,
+            "obj2_id": 24,
+            "k": 300000.0,
+            "d": 3000.0,
+            "yield_limit": 0.13,
+            "break_limit": 0.2,
+            "rest_length": 0.9804590761474957
+        },
+        {
+            "type": "Spring",
+            "obj1_id": 16,
+            "obj2_id": 24,
+            "k": 300000.0,
+            "d": 3000.0,
+            "yield_limit": 0.13,
+            "break_limit": 0.2,
+            "rest_length": 0.9304837451562455
+        },
+        {
+            "type": "Spring",
+            "obj1_id": 12,
+            "obj2_id": 18,
+            "k": 300000.0,
+            "d": 3000.0,
+            "yield_limit": 0.13,
+            "break_limit": 0.2,
+            "rest_length": 0.7200000000000011
+        },
+        {
+            "type": "Spring",
+            "obj1_id": 19,
+            "obj2_id": 11,
+            "k": 300000.0,
+            "d": 3000.0,
+            "yield_limit": 0.13,
+            "break_limit": 0.2,
+            "rest_length": 0.7684399781375254
+        },
+        {
+            "type": "Spring",
+            "obj1_id": 20,
+            "obj2_id": 4,
+            "k": 300000.0,
+            "d": 3000.0,
+            "yield_limit": 0.13,
+            "break_limit": 0.2,
+            "rest_length": 1.2400403219250586
+        },
+        {
+            "type": "Spring",
+            "obj1_id": 21,
+            "obj2_id": 5,
+            "k": 300000.0,
+            "d": 3000.0,
+            "yield_limit": 0.13,
+            "break_limit": 0.2,
+            "rest_length": 1.2401612798342012
+        },
+        {
+            "type": "Spring",
+            "obj1_id": 22,
+            "obj2_id": 6,
+            "k": 300000.0,
+            "d": 3000.0,
+            "yield_limit": 0.13,
+            "break_limit": 0.2,
+            "rest_length": 1.240362850137009
+        },
+        {
+            "type": "Spring",
+            "obj1_id": 24,
+            "obj2_id": 8,
+            "k": 300000.0,
+            "d": 3000.0,
+            "yield_limit": 0.13,
+            "break_limit": 0.2,
+            "rest_length": 0.7211102550927987
+        },
+        {
+            "type": "Spring",
+            "obj1_id": 9,
+            "obj2_id": 16,
+            "k": 300000.0,
+            "d": 3000.0,
+            "yield_limit": 0.13,
+            "break_limit": 0.2,
+            "rest_length": 1.4043147795277227
+        },
+        {
+            "type": "Spring",
+            "obj1_id": 10,
+            "obj2_id": 24,
+            "k": 300000.0,
+            "d": 3000.0,
+            "yield_limit": 0.13,
+            "break_limit": 0.2,
+            "rest_length": 1.56012819986051
+        },
+        {
+            "type": "Spring",
+            "obj1_id": 8,
+            "obj2_id": 16,
+            "k": 300000.0,
+            "d": 3000.0,
+            "yield_limit": 0.13,
+            "break_limit": 0.2,
+            "rest_length": 1.1999999999999977
+        },
+        {
+            "type": "Spring",
+            "obj1_id": 7,
+            "obj2_id": 22,
+            "k": 300000.0,
+            "d": 3000.0,
+            "yield_limit": 0.13,
+            "break_limit": 0.2,
+            "rest_length": 0.7669419795525593
+        },
+        {
+            "type": "Spring",
+            "obj1_id": 5,
+            "obj2_id": 22,
+            "k": 300000.0,
+            "d": 3000.0,
+            "yield_limit": 0.13,
+            "break_limit": 0.2,
+            "rest_length": 1.7465680633745735
+        },
+        {
+            "type": "Spring",
+            "obj1_id": 21,
+            "obj2_id": 6,
+            "k": 300000.0,
+            "d": 3000.0,
+            "yield_limit": 0.13,
+            "break_limit": 0.2,
+            "rest_length": 1.7821335527956368
+        },
+        {
+            "type": "Spring",
+            "obj1_id": 20,
+            "obj2_id": 5,
+            "k": 300000.0,
+            "d": 3000.0,
+            "yield_limit": 0.13,
+            "break_limit": 0.2,
+            "rest_length": 1.7965522536235907
+        },
+        {
+            "type": "Spring",
+            "obj1_id": 4,
+            "obj2_id": 21,
+            "k": 300000.0,
+            "d": 3000.0,
+            "yield_limit": 0.13,
+            "break_limit": 0.2,
+            "rest_length": 1.7893294833540316
+        },
+        {
+            "type": "Spring",
+            "obj1_id": 19,
+            "obj2_id": 4,
+            "k": 300000.0,
+            "d": 3000.0,
+            "yield_limit": 0.13,
+            "break_limit": 0.2,
+            "rest_length": 1.7466825699021573
+        },
+        {
+            "type": "Spring",
+            "obj1_id": 3,
+            "obj2_id": 20,
+            "k": 300000.0,
+            "d": 3000.0,
+            "yield_limit": 0.13,
+            "break_limit": 0.2,
+            "rest_length": 1.739540169125164
+        },
+        {
+            "type": "Spring",
+            "obj1_id": 13,
+            "obj2_id": 18,
+            "k": 300000.0,
+            "d": 3000.0,
+            "yield_limit": 0.13,
+            "break_limit": 0.2,
+            "rest_length": 1.2322337440599516
+        },
+        {
+            "type": "Spring",
+            "obj1_id": 18,
+            "obj2_id": 11,
+            "k": 300000.0,
+            "d": 3000.0,
+            "yield_limit": 0.13,
+            "break_limit": 0.2,
+            "rest_length": 1.1603878661895772
+        },
+        {
+            "type": "Spring",
+            "obj1_id": 12,
+            "obj2_id": 19,
+            "k": 300000.0,
+            "d": 3000.0,
+            "yield_limit": 0.13,
+            "break_limit": 0.2,
+            "rest_length": 1.3567977004697493
+        },
+        {
+            "type": "Spring",
+            "obj1_id": 12,
+            "obj2_id": 23,
+            "k": 300000.0,
+            "d": 3000.0,
+            "yield_limit": 0.13,
+            "break_limit": 0.2,
+            "rest_length": 1.232233744059949
+        },
+        {
+            "type": "Spring",
+            "obj1_id": 17,
+            "obj2_id": 14,
+            "k": 300000.0,
+            "d": 3000.0,
+            "yield_limit": 0.13,
+            "break_limit": 0.2,
+            "rest_length": 1.3461797799699713
+        },
+        {
+            "type": "Spring",
+            "obj1_id": 15,
+            "obj2_id": 23,
+            "k": 300000.0,
+            "d": 3000.0,
+            "yield_limit": 0.13,
+            "break_limit": 0.2,
+            "rest_length": 1.4729901561110323
+        },
+        {
+            "type": "Spring",
+            "obj1_id": 11,
+            "obj2_id": 20,
+            "k": 300000.0,
+            "d": 3000.0,
+            "yield_limit": 0.13,
+            "break_limit": 0.2,
+            "rest_length": 1.6368567438844481
+        },
+        {
+            "type": "Spring",
+            "obj1_id": 11,
+            "obj2_id": 4,
+            "k": 300000.0,
+            "d": 3000.0,
+            "yield_limit": 0.13,
+            "break_limit": 0.2,
+            "rest_length": 1.5498387012847499
+        },
+        {
+            "type": "Spring",
+            "obj1_id": 1,
+            "obj2_id": 13,
+            "k": 300000.0,
+            "d": 3000.0,
+            "yield_limit": 0.13,
+            "break_limit": 0.2,
+            "rest_length": 0.6346477657106354
+        },
+        {
+            "type": "Spring",
+            "obj1_id": 1,
+            "obj2_id": 12,
+            "k": 300000.0,
+            "d": 3000.0,
+            "yield_limit": 0.13,
+            "break_limit": 0.2,
+            "rest_length": 0.7701613468438135
+        },
+        {
+            "type": "Spring",
+            "obj1_id": 12,
+            "obj2_id": 0,
+            "k": 300000.0,
+            "d": 3000.0,
+            "yield_limit": 0.13,
+            "break_limit": 0.2,
+            "rest_length": 0.7362675616980272
+        },
+        {
+            "type": "Spring",
+            "obj1_id": 0,
+            "obj2_id": 11,
+            "k": 300000.0,
+            "d": 3000.0,
+            "yield_limit": 0.13,
+            "break_limit": 0.2,
+            "rest_length": 0.6066744124547178
+        },
+        {
+            "type": "Spring",
+            "obj1_id": 7,
+            "obj2_id": 21,
+            "k": 300000.0,
+            "d": 3000.0,
+            "yield_limit": 0.13,
+            "break_limit": 0.2,
+            "rest_length": 1.6957889019568408
+        },
+        {
+            "type": "Spring",
+            "obj1_id": 7,
+            "obj2_id": 5,
+            "k": 300000.0,
+            "d": 3000.0,
+            "yield_limit": 0.13,
+            "break_limit": 0.2,
+            "rest_length": 1.609751533622501
+        },
+        {
+            "type": "Spring",
+            "obj1_id": 7,
+            "obj2_id": 24,
+            "k": 300000.0,
+            "d": 3000.0,
+            "yield_limit": 0.13,
+            "break_limit": 0.2,
+            "rest_length": 0.9900505037623122
+        },
+        {
+            "type": "Spring",
+            "obj1_id": 8,
+            "obj2_id": 22,
+            "k": 300000.0,
+            "d": 3000.0,
+            "yield_limit": 0.13,
+            "break_limit": 0.2,
+            "rest_length": 1.2020815280171318
+        },
+        {
+            "type": "Spring",
+            "obj1_id": 17,
+            "obj2_id": 13,
+            "k": 300000.0,
+            "d": 3000.0,
+            "yield_limit": 0.13,
+            "break_limit": 0.2,
+            "rest_length": 1.098772041872198
+        },
+        {
+            "type": "Spring",
+            "obj1_id": 32,
+            "obj2_id": 23,
+            "k": 300000.0,
+            "d": 3000.0,
+            "yield_limit": 0.13,
+            "break_limit": 0.2,
+            "rest_length": 1.370036495864253
+        },
+        {
+            "type": "Spring",
+            "obj1_id": 23,
+            "obj2_id": 26,
+            "k": 300000.0,
+            "d": 3000.0,
+            "yield_limit": 0.13,
+            "break_limit": 0.2,
+            "rest_length": 1.1962023240238258
+        },
+        {
+            "type": "Spring",
+            "obj1_id": 26,
+            "obj2_id": 18,
+            "k": 300000.0,
+            "d": 3000.0,
+            "yield_limit": 0.13,
+            "break_limit": 0.2,
+            "rest_length": 1.2210241602851275
+        },
+        {
+            "type": "Spring",
+            "obj1_id": 18,
+            "obj2_id": 27,
+            "k": 300000.0,
+            "d": 3000.0,
+            "yield_limit": 0.13,
+            "break_limit": 0.2,
+            "rest_length": 1.2482387592123567
+        },
+        {
+            "type": "Spring",
+            "obj1_id": 27,
+            "obj2_id": 19,
+            "k": 300000.0,
+            "d": 3000.0,
+            "yield_limit": 0.13,
+            "break_limit": 0.2,
+            "rest_length": 1.2343419299367586
+        },
+        {
+            "type": "Spring",
+            "obj1_id": 19,
+            "obj2_id": 28,
+            "k": 300000.0,
+            "d": 3000.0,
+            "yield_limit": 0.13,
+            "break_limit": 0.2,
+            "rest_length": 1.2578155667664512
+        },
+        {
+            "type": "Spring",
+            "obj1_id": 28,
+            "obj2_id": 20,
+            "k": 300000.0,
+            "d": 3000.0,
+            "yield_limit": 0.13,
+            "break_limit": 0.2,
+            "rest_length": 1.2626955294131679
+        },
+        {
+            "type": "Spring",
+            "obj1_id": 29,
+            "obj2_id": 20,
+            "k": 300000.0,
+            "d": 3000.0,
+            "yield_limit": 0.13,
+            "break_limit": 0.2,
+            "rest_length": 1.2676355943251227
+        },
+        {
+            "type": "Spring",
+            "obj1_id": 31,
+            "obj2_id": 21,
+            "k": 300000.0,
+            "d": 3000.0,
+            "yield_limit": 0.13,
+            "break_limit": 0.2,
+            "rest_length": 1.2626955294131699
+        },
+        {
+            "type": "Spring",
+            "obj1_id": 29,
+            "obj2_id": 21,
+            "k": 300000.0,
+            "d": 3000.0,
+            "yield_limit": 0.13,
+            "break_limit": 0.2,
+            "rest_length": 1.2776932339180638
+        },
+        {
+            "type": "Spring",
+            "obj1_id": 30,
+            "obj2_id": 22,
+            "k": 300000.0,
+            "d": 3000.0,
+            "yield_limit": 0.13,
+            "break_limit": 0.2,
+            "rest_length": 1.1884864324004736
+        },
+        {
+            "type": "Spring",
+            "obj1_id": 31,
+            "obj2_id": 22,
+            "k": 300000.0,
+            "d": 3000.0,
+            "yield_limit": 0.13,
+            "break_limit": 0.2,
+            "rest_length": 1.2676355943251212
+        },
+        {
+            "type": "Spring",
+            "obj1_id": 30,
+            "obj2_id": 24,
+            "k": 300000.0,
+            "d": 3000.0,
+            "yield_limit": 0.13,
+            "break_limit": 0.2,
+            "rest_length": 1.2210241602851284
+        },
+        {
+            "type": "Spring",
+            "obj1_id": 25,
+            "obj2_id": 24,
+            "k": 300000.0,
+            "d": 3000.0,
+            "yield_limit": 0.13,
+            "break_limit": 0.2,
+            "rest_length": 1.163786922078094
+        },
+        {
+            "type": "Spring",
+            "obj1_id": 7,
+            "obj2_id": 2,
+            "k": 300000.0,
+            "d": 3000.0,
+            "yield_limit": 0.13,
+            "break_limit": 0.2,
+            "rest_length": 0.606889550213382
+        },
+        {
+            "type": "Spring",
+            "obj1_id": 8,
+            "obj2_id": 2,
+            "k": 300000.0,
+            "d": 3000.0,
+            "yield_limit": 0.13,
+            "break_limit": 0.2,
+            "rest_length": 0.6004230511607777
+        },
+        {
+            "type": "AeroBeam",
+            "obj1_id": 32,
+            "obj2_id": 17,
+            "k": 300000.0,
+            "d": 3000.0,
+            "yield_limit": 0.13,
+            "break_limit": 0.2,
+            "rest_length": 1.0900000000000032,
+            "chord": 2.5,
+            "lift_coef": 2.5,
+            "base_drag": 0.1,
+            "induced_drag": 1.0,
+            "normal_flip": -1
+        },
+        {
+            "type": "AeroBeam",
+            "obj1_id": 17,
+            "obj2_id": 15,
+            "k": 300000.0,
+            "d": 3000.0,
+            "yield_limit": 0.13,
+            "break_limit": 0.2,
+            "rest_length": 1.2100413216084807,
+            "chord": 2.5,
+            "lift_coef": 2.5,
+            "base_drag": 0.1,
+            "induced_drag": 1.0,
+            "normal_flip": -1
+        },
+        {
+            "type": "AeroBeam",
+            "obj1_id": 26,
+            "obj2_id": 32,
+            "k": 300000.0,
+            "d": 3000.0,
+            "yield_limit": 0.13,
+            "break_limit": 0.2,
+            "rest_length": 1.3000384609695197,
+            "chord": 2.5,
+            "lift_coef": 2.5,
+            "base_drag": 0.1,
+            "induced_drag": 1.0,
+            "normal_flip": -1
+        },
+        {
+            "type": "AeroBeam",
+            "obj1_id": 26,
+            "obj2_id": 27,
+            "k": 300000.0,
+            "d": 3000.0,
+            "yield_limit": 0.13,
+            "break_limit": 0.2,
+            "rest_length": 1.1199999999999992,
+            "chord": 2.5,
+            "lift_coef": 2.5,
+            "base_drag": 0.1,
+            "induced_drag": 1.0,
+            "normal_flip": 1
+        },
+        {
+            "type": "AeroBeam",
+            "obj1_id": 27,
+            "obj2_id": 28,
+            "k": 300000.0,
+            "d": 3000.0,
+            "yield_limit": 0.13,
+            "break_limit": 0.2,
+            "rest_length": 1.1700000000000008,
+            "chord": 2.5,
+            "lift_coef": 2.5,
+            "base_drag": 0.1,
+            "induced_drag": 1.0,
+            "normal_flip": 1
+        },
+        {
+            "type": "AeroBeam",
+            "obj1_id": 29,
+            "obj2_id": 28,
+            "k": 300000.0,
+            "d": 3000.0,
+            "yield_limit": 0.13,
+            "break_limit": 0.2,
+            "rest_length": 1.25,
+            "chord": 2.5,
+            "lift_coef": 2.5,
+            "base_drag": 0.1,
+            "induced_drag": 1.0,
+            "normal_flip": -1
+        },
+        {
+            "type": "AeroBeam",
+            "obj1_id": 31,
+            "obj2_id": 29,
+            "k": 300000.0,
+            "d": 3000.0,
+            "yield_limit": 0.13,
+            "break_limit": 0.2,
+            "rest_length": 1.2699999999999996,
+            "chord": 2.5,
+            "lift_coef": 2.5,
+            "base_drag": 0.1,
+            "induced_drag": 1.0,
+            "normal_flip": -1
+        },
+        {
+            "type": "AeroBeam",
+            "obj1_id": 30,
+            "obj2_id": 31,
+            "k": 300000.0,
+            "d": 3000.0,
+            "yield_limit": 0.13,
+            "break_limit": 0.2,
+            "rest_length": 1.08,
+            "chord": 2.5,
+            "lift_coef": 2.5,
+            "base_drag": 0.1,
+            "induced_drag": 1.0,
+            "normal_flip": -1
+        },
+        {
+            "type": "AeroBeam",
+            "obj1_id": 30,
+            "obj2_id": 25,
+            "k": 300000.0,
+            "d": 3000.0,
+            "yield_limit": 0.13,
+            "break_limit": 0.2,
+            "rest_length": 0.9100000000000001,
+            "chord": 2.5,
+            "lift_coef": 2.5,
+            "base_drag": 0.1,
+            "induced_drag": 1.0,
+            "normal_flip": 1
+        },
+        {
+            "type": "AeroBeam",
+            "obj1_id": 25,
+            "obj2_id": 16,
+            "k": 300000.0,
+            "d": 3000.0,
+            "yield_limit": 0.13,
+            "break_limit": 0.2,
+            "rest_length": 1.2253978945632318,
+            "chord": 2.5,
+            "lift_coef": 2.5,
+            "base_drag": 0.1,
+            "induced_drag": 1.0,
+            "normal_flip": 1
+        },
+        {
+            "type": "AeroBeam",
+            "obj1_id": 16,
+            "obj2_id": 10,
+            "k": 300000.0,
+            "d": 3000.0,
+            "yield_limit": 0.13,
+            "break_limit": 0.2,
+            "rest_length": 1.2599999999999998,
+            "chord": 2.5,
+            "lift_coef": 2.5,
+            "base_drag": 0.1,
+            "induced_drag": 1.0,
+            "normal_flip": 1
+        },
+        {
+            "type": "AeroBeam",
+            "obj1_id": 9,
+            "obj2_id": 10,
+            "k": 300000.0,
+            "d": 3000.0,
+            "yield_limit": 0.13,
+            "break_limit": 0.2,
+            "rest_length": 0.6400781202322074,
+            "chord": 2.5,
+            "lift_coef": 2.5,
+            "base_drag": 0.1,
+            "induced_drag": 1.0,
+            "normal_flip": -1
+        },
+        {
+            "type": "AeroBeam",
+            "obj1_id": 9,
+            "obj2_id": 8,
+            "k": 300000.0,
+            "d": 3000.0,
+            "yield_limit": 0.13,
+            "break_limit": 0.2,
+            "rest_length": 0.6129437168288778,
+            "chord": 2.5,
+            "lift_coef": 2.5,
+            "base_drag": 0.1,
+            "induced_drag": 1.0,
+            "normal_flip": 1
+        },
+        {
+            "type": "AeroBeam",
+            "obj1_id": 8,
+            "obj2_id": 7,
+            "k": 300000.0,
+            "d": 3000.0,
+            "yield_limit": 0.13,
+            "break_limit": 0.2,
+            "rest_length": 0.680000000000005,
+            "chord": 2.5,
+            "lift_coef": 2.5,
+            "base_drag": 0.1,
+            "induced_drag": 1.0,
+            "normal_flip": 1
+        },
+        {
+            "type": "AeroBeam",
+            "obj1_id": 7,
+            "obj2_id": 6,
+            "k": 300000.0,
+            "d": 3000.0,
+            "yield_limit": 0.13,
+            "break_limit": 0.2,
+            "rest_length": 0.5903388857258178,
+            "chord": 2.5,
+            "lift_coef": 2.5,
+            "base_drag": 0.1,
+            "induced_drag": 1.0,
+            "normal_flip": 1
+        },
+        {
+            "type": "AeroBeam",
+            "obj1_id": 5,
+            "obj2_id": 6,
+            "k": 300000.0,
+            "d": 3000.0,
+            "yield_limit": 0.13,
+            "break_limit": 0.2,
+            "rest_length": 1.2599999999999998,
+            "chord": 2.5,
+            "lift_coef": 2.5,
+            "base_drag": 0.1,
+            "induced_drag": 1.0,
+            "normal_flip": -1
+        },
+        {
+            "type": "AeroBeam",
+            "obj1_id": 4,
+            "obj2_id": 5,
+            "k": 300000.0,
+            "d": 3000.0,
+            "yield_limit": 0.13,
+            "break_limit": 0.2,
+            "rest_length": 1.3099999999999987,
+            "chord": 2.5,
+            "lift_coef": 2.5,
+            "base_drag": 0.1,
+            "induced_drag": 1.0,
+            "normal_flip": -1
+        },
+        {
+            "type": "AeroBeam",
+            "obj1_id": 3,
+            "obj2_id": 4,
+            "k": 300000.0,
+            "d": 3000.0,
+            "yield_limit": 0.13,
+            "break_limit": 0.2,
+            "rest_length": 1.2100000000000009,
+            "chord": 2.5,
+            "lift_coef": 2.5,
+            "base_drag": 0.1,
+            "induced_drag": 1.0,
+            "normal_flip": -1
+        },
+        {
+            "type": "AeroBeam",
+            "obj1_id": 11,
+            "obj2_id": 3,
+            "k": 300000.0,
+            "d": 3000.0,
+            "yield_limit": 0.13,
+            "break_limit": 0.2,
+            "rest_length": 0.5769748694700667,
+            "chord": 2.5,
+            "lift_coef": 2.5,
+            "base_drag": 0.1,
+            "induced_drag": 1.0,
+            "normal_flip": -1
+        },
+        {
+            "type": "AeroBeam",
+            "obj1_id": 12,
+            "obj2_id": 11,
+            "k": 300000.0,
+            "d": 3000.0,
+            "yield_limit": 0.13,
+            "break_limit": 0.2,
+            "rest_length": 0.9100000000000001,
+            "chord": 2.5,
+            "lift_coef": 2.5,
+            "base_drag": 0.1,
+            "induced_drag": 1.0,
+            "normal_flip": -1
+        },
+        {
+            "type": "AeroBeam",
+            "obj1_id": 13,
+            "obj2_id": 12,
+            "k": 300000.0,
+            "d": 3000.0,
+            "yield_limit": 0.13,
+            "break_limit": 0.2,
+            "rest_length": 1.0000000000000013,
+            "chord": 2.5,
+            "lift_coef": 2.5,
+            "base_drag": 0.1,
+            "induced_drag": 1.0,
+            "normal_flip": -1
+        },
+        {
+            "type": "AeroBeam",
+            "obj1_id": 15,
+            "obj2_id": 14,
+            "k": 300000.0,
+            "d": 3000.0,
+            "yield_limit": 0.13,
+            "break_limit": 0.2,
+            "rest_length": 0.6000000000000001,
+            "chord": 2.5,
+            "lift_coef": 2.5,
+            "base_drag": 0.1,
+            "induced_drag": 1.0,
+            "normal_flip": -1
+        },
+        {
+            "type": "AeroBeam",
+            "obj1_id": 14,
+            "obj2_id": 13,
+            "k": 300000.0,
+            "d": 3000.0,
+            "yield_limit": 0.13,
+            "break_limit": 0.2,
+            "rest_length": 0.5456189146281483,
+            "chord": 2.5,
+            "lift_coef": 2.5,
+            "base_drag": 0.1,
+            "induced_drag": 1.0,
+            "normal_flip": -1
+        }
+    ]
+}

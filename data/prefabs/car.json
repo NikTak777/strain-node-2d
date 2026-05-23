@@ -33,7 +33,7 @@
         },
         {
             "id": 2,
-            "type": "Object",
+            "type": "StructuralNode",
             "x": 1.6,
             "y": 0.8,
             "radius": 0.1,
@@ -48,7 +48,7 @@
         },
         {
             "id": 3,
-            "type": "Object",
+            "type": "StructuralNode",
             "x": 2.4,
             "y": 0.8,
             "radius": 0.1,
@@ -63,7 +63,7 @@
         },
         {
             "id": 4,
-            "type": "Object",
+            "type": "StructuralNode",
             "x": 3.2,
             "y": 0.8,
             "radius": 0.1,
@@ -78,7 +78,7 @@
         },
         {
             "id": 5,
-            "type": "Object",
+            "type": "StructuralNode",
             "x": 0.0,
             "y": 0.8,
             "radius": 0.1,
@@ -93,7 +93,7 @@
         },
         {
             "id": 6,
-            "type": "Object",
+            "type": "StructuralNode",
             "x": 0.0,
             "y": 1.6,
             "radius": 0.1,
@@ -108,7 +108,7 @@
         },
         {
             "id": 7,
-            "type": "Object",
+            "type": "StructuralNode",
             "x": 0.8,
             "y": 1.6,
             "radius": 0.1,
@@ -123,7 +123,7 @@
         },
         {
             "id": 8,
-            "type": "Object",
+            "type": "StructuralNode",
             "x": 1.6,
             "y": 1.6,
             "radius": 0.1,
@@ -138,7 +138,7 @@
         },
         {
             "id": 9,
-            "type": "Object",
+            "type": "StructuralNode",
             "x": 2.4,
             "y": 1.6,
             "radius": 0.1,
@@ -153,7 +153,7 @@
         },
         {
             "id": 10,
-            "type": "Object",
+            "type": "StructuralNode",
             "x": 3.2,
             "y": 1.6,
             "radius": 0.1,
@@ -168,7 +168,7 @@
         },
         {
             "id": 11,
-            "type": "Object",
+            "type": "StructuralNode",
             "x": 4.0,
             "y": 1.6,
             "radius": 0.1,
@@ -183,7 +183,7 @@
         },
         {
             "id": 12,
-            "type": "Object",
+            "type": "StructuralNode",
             "x": 4.8,
             "y": 1.6,
             "radius": 0.1,
@@ -198,7 +198,7 @@
         },
         {
             "id": 13,
-            "type": "Object",
+            "type": "StructuralNode",
             "x": 4.8,
             "y": 0.8,
             "radius": 0.1,
@@ -213,7 +213,7 @@
         },
         {
             "id": 14,
-            "type": "Object",
+            "type": "StructuralNode",
             "x": 3.2,
             "y": 2.4,
             "radius": 0.1,
@@ -228,7 +228,7 @@
         },
         {
             "id": 15,
-            "type": "Object",
+            "type": "StructuralNode",
             "x": 2.4,
             "y": 2.4,
             "radius": 0.1,
@@ -243,7 +243,7 @@
         },
         {
             "id": 16,
-            "type": "Object",
+            "type": "StructuralNode",
             "x": 1.6,
             "y": 2.4,
             "radius": 0.1,
@@ -258,18 +258,18 @@
         }
     ],
     "springs": [
-        {"type": "AeroBeam", "obj1_id": 0, "obj2_id": 1, "k": 50000.0, "d": 1500.0, "yield_limit": 0.13, "break_limit": 0.20, "chord": 2.0},
+        {"type": "AeroBeam", "obj1_id": 0, "obj2_id": 1, "k": 50000.0, "d": 1500.0, "yield_limit": 0.13, "break_limit": 0.20, "chord": 2.0, "normal_flip": -1},
 
         {"obj1_id": 0, "obj2_id": 2, "k": 150000.0, "d": 1500.0, "yield_limit": 0.13, "break_limit": 0.20},
         {"obj1_id": 2, "obj2_id": 3, "k": 150000.0, "d": 1500.0, "yield_limit": 0.13, "break_limit": 0.20},
         {"obj1_id": 3, "obj2_id": 4, "k": 150000.0, "d": 1500.0, "yield_limit": 0.13, "break_limit": 0.20},
         {"obj1_id": 4, "obj2_id": 1, "k": 150000.0, "d": 1500.0, "yield_limit": 0.13, "break_limit": 0.20},
-        {"type": "AeroBeam", "obj1_id": 5, "obj2_id": 0, "k": 150000.0, "d": 1500.0, "yield_limit": 0.13, "break_limit": 0.20, "chord": 2.0},
-        {"type": "AeroBeam", "obj1_id": 6, "obj2_id": 5, "k": 150000.0, "d": 1500.0, "yield_limit": 0.13, "break_limit": 0.20, "chord": 2.0},
+        {"type": "AeroBeam", "obj1_id": 5, "obj2_id": 0, "k": 150000.0, "d": 1500.0, "yield_limit": 0.13, "break_limit": 0.20, "chord": 2.0, "normal_flip": -1},
+        {"type": "AeroBeam", "obj1_id": 6, "obj2_id": 5, "k": 150000.0, "d": 1500.0, "yield_limit": 0.13, "break_limit": 0.20, "chord": 2.0, "normal_flip": -1},
         {"obj1_id": 6, "obj2_id": 0, "k": 150000.0, "d": 1500.0, "yield_limit": 0.13, "break_limit": 0.20},
         {"obj1_id": 7, "obj2_id": 0, "k": 150000.0, "d": 1500.0, "yield_limit": 0.13, "break_limit": 0.20},
         {"obj1_id": 7, "obj2_id": 5, "k": 150000.0, "d": 1500.0, "yield_limit": 0.13, "break_limit": 0.20},
-        {"type": "AeroBeam", "obj1_id": 7, "obj2_id": 6, "k": 150000.0, "d": 1500.0, "yield_limit": 0.13, "break_limit": 0.20, "chord": 2.0},
+        {"type": "AeroBeam", "obj1_id": 7, "obj2_id": 6, "k": 150000.0, "d": 1500.0, "yield_limit": 0.13, "break_limit": 0.20, "chord": 2.0, "normal_flip": -1},
         {"obj1_id": 8, "obj2_id": 0, "k": 150000.0, "d": 1500.0, "yield_limit": 0.13, "break_limit": 0.20},
         {"obj1_id": 7, "obj2_id": 8, "k": 150000.0, "d": 1500.0, "yield_limit": 0.13, "break_limit": 0.20},
         {"obj1_id": 8, "obj2_id": 2, "k": 150000.0, "d": 1500.0, "yield_limit": 0.13, "break_limit": 0.20},
@@ -286,7 +286,7 @@
         {"obj1_id": 11, "obj2_id": 10, "k": 150000.0, "d": 1500.0, "yield_limit": 0.13, "break_limit": 0.20},
         {"obj1_id": 11, "obj2_id": 1, "k": 150000.0, "d": 1500.0, "yield_limit": 0.13, "break_limit": 0.20},
         {"obj1_id": 10, "obj2_id": 1, "k": 150000.0, "d": 1500.0, "yield_limit": 0.13, "break_limit": 0.20},
-        {"type": "AeroBeam", "obj1_id": 12, "obj2_id": 11, "k": 150000.0, "d": 1500.0, "yield_limit": 0.13, "break_limit": 0.20, "chord": 2.0},
+        {"type": "AeroBeam", "obj1_id": 12, "obj2_id": 11, "k": 150000.0, "d": 1500.0, "yield_limit": 0.13, "break_limit": 0.20, "chord": 2.0, "normal_flip": -1},
         {"type": "AeroBeam", "obj1_id": 12, "obj2_id": 13, "k": 150000.0, "d": 1500.0, "yield_limit": 0.13, "break_limit": 0.20, "chord": 2.0},
         {"obj1_id": 12, "obj2_id": 1, "k": 150000.0, "d": 1500.0, "yield_limit": 0.13, "break_limit": 0.20},
         {"type": "AeroBeam", "obj1_id": 13, "obj2_id": 1, "k": 150000.0, "d": 1500.0, "yield_limit": 0.13, "break_limit": 0.20, "chord": 2.0},
@@ -297,6 +297,6 @@
         {"obj1_id": 15, "obj2_id": 9, "k": 150000.0, "d": 1500.0, "yield_limit": 0.13, "break_limit": 0.20},
         {"type": "AeroBeam","obj1_id": 16, "obj2_id": 15, "k": 150000.0, "d": 1500.0, "yield_limit": 0.13, "break_limit": 0.20, "chord": 2.0},
         {"obj1_id": 16, "obj2_id": 8, "k": 150000.0, "d": 1500.0, "yield_limit": 0.13, "break_limit": 0.20},
-        {"type": "AeroBeam", "obj1_id": 16, "obj2_id": 7, "k": 150000.0, "d": 1500.0, "yield_limit": 0.13, "break_limit": 0.20, "chord": 2.0}
+        {"type": "AeroBeam", "obj1_id": 16, "obj2_id": 7, "k": 150000.0, "d": 1500.0, "yield_limit": 0.13, "break_limit": 0.20, "chord": 2.0, "normal_flip": -1}
     ]
 }
