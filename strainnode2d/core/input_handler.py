@@ -293,7 +293,10 @@ class InputHandler:
                     if filepath:
                         app.selected_obj = None
                         app.dragged_obj = None
+                        app.selected_nodes.clear()
+                        app.selected_springs.clear()
                         load_scene(app.sim, filepath)
+                        app.focus_on_loaded_scene()
 
                 # Редактирование (E)
                 elif event.key == pygame.K_e:

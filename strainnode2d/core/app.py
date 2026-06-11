@@ -117,6 +117,16 @@ class SimulationApp:
         zoom_y = self.height / (self.world_height * self.scale)
         self.camera.zoom = min(zoom_x, zoom_y) * 0.95
 
+    def focus_on_loaded_scene(self):
+        """Плавно перемещает камеру к центру загруженной сцены."""
+        objects = self.sim.objects
+        if not objects:
+            return
+        inv_n = 1.0 / len(objects)
+        cx = sum(obj.location[0] for obj in objects) * inv_n
+        cy = sum(obj.location[1] for obj in objects) * inv_n
+        self.camera.pan_to(cx, cy)
+
     @staticmethod
     def get_ball_surface(obj: Object, scale: float = 20):
         """

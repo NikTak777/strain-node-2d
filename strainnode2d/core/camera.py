@@ -28,13 +28,34 @@ class Camera:
         self.target = None    # Объект для слежения
         self.width = width    # Ширина окна
         self.height = height  # Высота окна
+        self.focus_x = None   # Точка для разового плавного перелёта
+        self.focus_y = None
+
+    def pan_to(self, x: float, y: float):
+        """Запускает быстрый плавный перелёт камеры к точке в мире."""
+        self.focus_x = x
+        self.focus_y = y
+        self.target = None
 
     def update(self, dt: float):
-        """Плавное следование за целью, если она задана."""
+        """Плавное следование за целью или перелёт к заданной точке."""
+        if self.focus_x is not None:
+            dx = self.focus_x - self.x
+            dy = self.focus_y - self.y
+            if dx * dx + dy * dy < 0.04:
+                self.x = self.focus_x
+                self.y = self.focus_y
+                self.focus_x = None
+                self.focus_y = None
+            else:
+                t = min(1.0, 10.0 * dt)
+                self.x += dx * t
+                self.y += dy * t
+            return
+
         if self.target is not None:
             try:
                 tx, ty = self.target.get_location()
-                # Плавная интерполяция движения (Lerp)
                 self.x += (tx - self.x) * 5.0 * dt
                 self.y += (ty - self.y) * 5.0 * dt
             except AttributeError:
