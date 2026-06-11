@@ -16,8 +16,15 @@
     along with this program. If not, see <https://www.gnu.org/licenses/>.
 """
 
-from strainnode2d.core.app import SimulationApp, FPS, WIDTH, HEIGHT, SCALE
+from strainnode2d.core.app import SimulationApp, FPS, WIDTH, HEIGHT, SCALE, WORLD_WIDTH, WORLD_HEIGHT
 
 if __name__ == "__main__": # Запуск приложения
-    app = SimulationApp(fps=FPS, width=WIDTH, height=HEIGHT, scale=SCALE) # Создание экземпляра симулятора
+    app = SimulationApp(
+        fps=FPS,
+        width=WIDTH,
+        height=HEIGHT,
+        scale=SCALE,
+        world_width=WORLD_WIDTH,
+        world_height=WORLD_HEIGHT,
+    )
     app.run() # Запускаем главный цикл

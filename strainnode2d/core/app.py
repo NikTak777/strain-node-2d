@@ -31,19 +31,23 @@ from strainnode2d.core.input_handler import InputHandler
 from strainnode2d.core.camera import Camera
 
 FPS = 1000
-SCALE = 1.0
-WIDTH, HEIGHT = 2200, 800
+WORLD_WIDTH, WORLD_HEIGHT = 200.0, 80.0
+SCALE = 20.0
+WIDTH, HEIGHT = 1920, 1080
 
 
 class SimulationApp:
-    def __init__(self, fps: int = 120, width: int = 1200, height: int = 800, scale: float = 20.0):
+    def __init__(self, fps: int = 120, width: int = WIDTH, height: int = HEIGHT, scale: float = SCALE,
+                 world_width: float = WORLD_WIDTH, world_height: float = WORLD_HEIGHT):
         """
         Инициализация главного приложения симулятора.
 
         :param fps: Целевая частота кадров в секунду (Frames Per Second).
         :param width: Ширина окна приложения в пикселях.
         :param height: Высота окна приложения в пикселях.
-        :param scale: Масштаб отображения (количество пикселей в одном физическом метре).
+        :param scale: Масштаб отображения (пикселей на физический метр). Влияет только на рендер.
+        :param world_width: Ширина физического мира в метрах.
+        :param world_height: Высота физического мира в метрах.
         """
         pygame.init()
         pygame.font.init()
@@ -51,6 +55,8 @@ class SimulationApp:
         self.width = width
         self.height = height
         self.scale = scale
+        self.world_width = world_width
+        self.world_height = world_height
 
         self.screen = pygame.display.set_mode((self.width, self.height), pygame.RESIZABLE)
         pygame.display.set_caption("StrainNode2D")
@@ -79,16 +85,15 @@ class SimulationApp:
         self.font = pygame.font.SysFont("Consolas", 18)
         self.hud_font = pygame.font.SysFont("Consolas", 14)
 
-        phys_width = self.width / self.scale
-        phys_height = self.height / self.scale
-        self.area = Area(0, 0, phys_width, phys_height)
+        self.area = Area(world_width, world_height, 0, 0)
         self.sim = PhysicSimulation(self.area)
         self.inspector = InspectorHUD()
         self.input_handler = InputHandler(self)
 
         self.camera = Camera(self.width, self.height)
-        self.camera.x = phys_width / 2
-        self.camera.y = phys_height / 2
+        self.camera.x = world_width / 2
+        self.camera.y = world_height / 2
+        self.fit_camera_to_world()
 
         # Инициализация Discord RPC
         self.client_id = 1504956012195479572
@@ -103,6 +108,14 @@ class SimulationApp:
         except Exception as e:
             self.rpc = None
             print(f"Discord не запущен или ошибка подключения: {e}")
+
+    def fit_camera_to_world(self):
+        """Настраивает зум камеры, чтобы весь мир был виден в текущем окне."""
+        if self.world_width <= 0 or self.world_height <= 0 or self.scale <= 0:
+            return
+        zoom_x = self.width / (self.world_width * self.scale)
+        zoom_y = self.height / (self.world_height * self.scale)
+        self.camera.zoom = min(zoom_x, zoom_y) * 0.95
 
     @staticmethod
     def get_ball_surface(obj: Object, scale: float = 20):
@@ -419,6 +432,12 @@ class SimulationApp:
 
 
 if __name__ == "__main__":
-    # Запуск приложения
-    app = SimulationApp(fps=FPS, width=WIDTH, height=HEIGHT, scale=SCALE)
+    app = SimulationApp(
+        fps=FPS,
+        width=WIDTH,
+        height=HEIGHT,
+        scale=SCALE,
+        world_width=WORLD_WIDTH,
+        world_height=WORLD_HEIGHT,
+    )
     app.run()
