@@ -256,7 +256,7 @@ class Beam(Spring):
 
 class AeroBeam(Spring):
     def __init__(self, obj1: Object, obj2: Object, chord: float = 1.0,
-                 lift_coef: float = 1.5, base_drag: float = 0.1, induced_drag: float = 1.0, **kwargs):
+                 lift_coef: float = 1.0, base_drag: float = 0.1, induced_drag: float = 1.0, **kwargs):
         """
         Инициализация аэродинамической балки (Крыла / Спойлера).
         Помимо упругости, генерирует подъемную силу и лобовое сопротивление
@@ -277,6 +277,12 @@ class AeroBeam(Spring):
         self.lift_coef = lift_coef
         self.base_drag = base_drag
         self.induced_drag = induced_drag
+
+        # Переменные для телеметрии
+        self.current_drag = 0.0
+        self.current_downforce = 0.0
+        self.current_frontal_area = 0.0
+        self.current_ge_force = 0.0
 
     def update(self, dt: float, air_density: float = 1.29):
         super().update(dt)
@@ -339,12 +345,29 @@ class AeroBeam(Spring):
         lift_dir_x = -v_norm_y
         lift_dir_y = v_norm_x
 
-        lift_fx = lift_dir_x * f_lift
-        lift_fy = lift_dir_y * f_lift
+        # Векторное произведение скорости и нормали
+        cross_prod = v_norm_y * nx - v_norm_x * ny
+
+        # Берет только знак (1.0 или -1.0)
+        lift_sign = 1.0 if cross_prod >= 0 else -1.0
+
+        # Умножаем силу на знак. Теперь балка сама решает, спойлер она или крыло!
+        lift_fx = lift_dir_x * f_lift * lift_sign
+        lift_fy = lift_dir_y * f_lift * lift_sign
 
         # Общая аэродинамическая сила
         total_fx = drag_fx + lift_fx
         total_fy = drag_fy + lift_fy
+
+        self.current_drag = f_drag  # Сопротивление воздуха
+        self.current_downforce = -total_fy  # Сила, давящая машину в пол (минус, т.к. пол внизу)
+
+        # Считаем фронтальную площадь проекции (Миделево сечение)
+        # Если балка в тени (sin_alpha <= 0), её площадь = 0
+        if sin_alpha > 0:
+            self.current_frontal_area = (L * self.chord) * sin_alpha
+        else:
+            self.current_frontal_area = 0.0
 
         # Применяется половина силы к каждому узлу
         half_fx = total_fx / 2.0

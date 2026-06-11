@@ -54,7 +54,7 @@ class InputHandler:
                 zoom_factor = 1.1 if event.y > 0 else 0.9
                 app.camera.zoom *= zoom_factor
                 # Ограничивает приближение/отдаление (от 10% до 1000%)
-                app.camera.zoom = max(0.1, min(app.camera.zoom, 10.0))
+                app.camera.zoom = max(0.1, min(app.camera.zoom, 100.0))
 
             # Обработка событий мыши
             elif event.type == pygame.MOUSEBUTTONDOWN:
@@ -162,13 +162,9 @@ class InputHandler:
                                     app.selected_springs.remove(clicked_obj)
                                 else:
                                     app.selected_springs.append(clicked_obj)
-                                    if clicked_obj.obj1 not in app.selected_nodes: app.selected_nodes.append(
-                                        clicked_obj.obj1)
-                                    if clicked_obj.obj2 not in app.selected_nodes: app.selected_nodes.append(
-                                        clicked_obj.obj2)
                             else:
                                 app.selected_springs = [clicked_obj]
-                                app.selected_nodes = [clicked_obj.obj1, clicked_obj.obj2]
+                                app.selected_nodes.clear()
                     else:
                         if not is_shift and not is_ctrl:
                             app.selected_nodes.clear()
@@ -252,8 +248,6 @@ class InputHandler:
                             if phys_min_x <= ox <= phys_max_x and phys_min_y <= oy <= phys_max_y:
                                 if spring not in app.selected_springs:
                                     app.selected_springs.append(spring)
-                                    if spring.obj1 not in app.selected_nodes: app.selected_nodes.append(spring.obj1)
-                                    if spring.obj2 not in app.selected_nodes: app.selected_nodes.append(spring.obj2)
 
             # Обработка нажатий клавиш на клавиатуре
             elif event.type == pygame.KEYDOWN:
@@ -339,10 +333,10 @@ class InputHandler:
                 # Редактирование (E)
                 elif event.key == pygame.K_e:
                     target = None
-                    if len(app.selected_nodes) == 1 and len(app.selected_springs) == 0:
-                        target = app.selected_nodes[0]
-                    elif len(app.selected_springs) == 1 and len(app.selected_nodes) <= 2:
+                    if len(app.selected_springs) == 1:
                         target = app.selected_springs[0]
+                    elif len(app.selected_nodes) == 1:
+                        target = app.selected_nodes[0]
 
                     if target is not None:
                         new_data = show_edit_dialog(target)

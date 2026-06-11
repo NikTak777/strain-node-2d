@@ -31,8 +31,8 @@ from strainnode2d.core.input_handler import InputHandler
 from strainnode2d.core.camera import Camera
 
 FPS = 1000
-SCALE = 10.0
-WIDTH, HEIGHT = 1200, 800
+SCALE = 1.0
+WIDTH, HEIGHT = 2200, 800
 
 
 class SimulationApp:
@@ -195,6 +195,11 @@ class SimulationApp:
                 phys_mx, phys_my = self.camera.screen_to_phys(mx, my, self.scale)
                 self.dragged_obj.location = [phys_mx + self.drag_offset[0], phys_my + self.drag_offset[1]]
                 self.dragged_obj.velocity = [0.0, 0.0]
+                for spring in self.sim.springs:
+                    if spring.obj1 == self.dragged_obj or spring.obj2 == self.dragged_obj:
+                        dx = spring.obj2.location[0] - spring.obj1.location[0]
+                        dy = spring.obj2.location[1] - spring.obj1.location[1]
+                        spring.rest_length = math.sqrt(dx ** 2 + dy ** 2)
             return
 
         for obj in self.sim.objects:
@@ -213,7 +218,7 @@ class SimulationApp:
                 self.dragged_obj.velocity[1] = (target_y - self.dragged_obj.location[1]) * 15.0
 
         # Шаг физической симуляции
-        substeps = 10  # Дробится шаг на 10 частей
+        substeps = 10  # Дробится шаг на 25 частей
         sub_dt = scaled_dt / substeps
         for _ in range(substeps):
             for obj in self.sim.objects:
@@ -301,13 +306,34 @@ class SimulationApp:
             self.screen.blit(s, rect.topleft)
             pygame.draw.rect(self.screen, (100, 200, 255), rect, 1)
 
+        # Расчёт телеметрии по аэродинамике
+        total_drag = 0.0
+        total_downforce = 0.0
+        total_frontal_area = 0.0
+        total_ge_force = 0.0
+
+        for spring in self.sim.springs:
+            if spring.__class__.__name__ == "AeroBeam":
+                total_drag += getattr(spring, 'current_drag', 0.0)
+                total_downforce += getattr(spring, 'current_downforce', 0.0)
+                total_frontal_area += getattr(spring, 'current_frontal_area', 0.0)
+                total_ge_force += getattr(spring, 'current_ge_force', 0.0)
+
+        total_grip_force = total_downforce + total_ge_force
+        ld_ratio = total_grip_force / total_drag if total_drag > 0.1 else 0.0
+
         telemetry = [
             f"Time:    {self.sim.time:.2f}s",
             f"Speed:   {'[PAUSED]' if self.is_paused else f'{self.time_scale:.1f}x'}",
             f"FPS:     {self.clock.get_fps():.0f}",
             f"Zoom:    {self.camera.zoom:.2f}x",
             f"Nodes:   {len(self.sim.objects)}",
-            f"Beams:   {len(self.sim.springs)}"
+            f"Beams:   {len(self.sim.springs)}",
+            f"Area:    {total_frontal_area:.2f} m2",
+            f"Drag:    {total_drag:.1f} N",
+            f"DownFrc: {total_downforce:.1f} N",
+            f"GroundE: {total_ge_force:.1f} N",
+            f"L/D:     {ld_ratio:.2f}"
         ]
 
         for i, text_line in enumerate(telemetry):
@@ -340,10 +366,10 @@ class SimulationApp:
                     pygame.draw.line(self.screen, (255, 255, 0), (sc_cx, sc_cy), (sc_ex, sc_ey), 2)
                     pygame.draw.circle(self.screen, (255, 50, 50), (int(sc_ex), int(sc_ey)), 4)
 
-        if len(self.selected_nodes) == 1 and len(self.selected_springs) == 0:
-            self.inspector.draw(self.screen, self.selected_nodes[0], self.scale, self.camera, self.width, self.height)
-        elif len(self.selected_springs) == 1 and len(self.selected_nodes) <= 2:
+        if len(self.selected_springs) == 1:
             self.inspector.draw(self.screen, self.selected_springs[0], self.scale, self.camera, self.width, self.height)
+        elif len(self.selected_nodes) == 1:
+            self.inspector.draw(self.screen, self.selected_nodes[0], self.scale, self.camera, self.width, self.height)
 
         pygame.display.flip()
 

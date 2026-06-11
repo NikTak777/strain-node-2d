@@ -51,6 +51,7 @@ def save_scene(sim, filename):
         # Если это мотор, сохраняем его специфичные свойства
         if isinstance(obj, MotorWheel):
             obj_data["power"] = obj.power
+            obj_data["max_speed"] = obj.max_speed
 
         data["objects"].append(obj_data)
 
@@ -121,6 +122,7 @@ def load_scene(sim, filename):
 
         if obj_type == "MotorWheel":
             kwargs["power"] = obj_data.get("power", 500.0)
+            kwargs["max_speed"] = obj_data.get("max_speed", 50.0)
             obj = MotorWheel(**kwargs)
         elif obj_type == "StructuralNode":
             obj = StructuralNode(**kwargs)

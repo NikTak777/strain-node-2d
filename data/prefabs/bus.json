@@ -21,7 +21,8 @@
             "is_static": false,
             "angle": 1.7143492901795157,
             "angular_velocity": 7.653638558863686e-13,
-            "power": 200.0
+            "power": 300.0,
+            "max_speed": 600.0
         },
         {
             "id": 1,
@@ -77,7 +78,7 @@
                 0.0,
                 0.0
             ],
-            "density": 9500.0,
+            "density": 12500.0,
             "restitution": 0.5,
             "friction": 0.5,
             "color": [
@@ -99,7 +100,7 @@
                 0.0,
                 0.0
             ],
-            "density": 9500.0,
+            "density": 12500.0,
             "restitution": 0.5,
             "friction": 0.5,
             "color": [
@@ -121,7 +122,7 @@
                 0.0,
                 0.0
             ],
-            "density": 9500.0,
+            "density": 12500.0,
             "restitution": 0.5,
             "friction": 0.5,
             "color": [
@@ -143,7 +144,7 @@
                 0.0,
                 0.0
             ],
-            "density": 9500.0,
+            "density": 12500.0,
             "restitution": 0.5,
             "friction": 0.5,
             "color": [
@@ -165,7 +166,7 @@
                 0.0,
                 0.0
             ],
-            "density": 9500.0,
+            "density": 12500.0,
             "restitution": 0.5,
             "friction": 0.5,
             "color": [
@@ -187,7 +188,7 @@
                 0.0,
                 0.0
             ],
-            "density": 9500.0,
+            "density": 12500.0,
             "restitution": 0.5,
             "friction": 0.5,
             "color": [
@@ -209,7 +210,7 @@
                 0.0,
                 0.0
             ],
-            "density": 9500.0,
+            "density": 12500.0,
             "restitution": 0.5,
             "friction": 0.5,
             "color": [
@@ -231,7 +232,7 @@
                 0.0,
                 0.0
             ],
-            "density": 9500.0,
+            "density": 12500.0,
             "restitution": 0.5,
             "friction": 0.5,
             "color": [
@@ -253,7 +254,7 @@
                 0.0,
                 0.0
             ],
-            "density": 9500.0,
+            "density": 12500.0,
             "restitution": 0.5,
             "friction": 0.5,
             "color": [
@@ -275,7 +276,7 @@
                 0.0,
                 0.0
             ],
-            "density": 9500.0,
+            "density": 12500.0,
             "restitution": 0.5,
             "friction": 0.5,
             "color": [
@@ -297,7 +298,7 @@
                 0.0,
                 0.0
             ],
-            "density": 9500.0,
+            "density": 12500.0,
             "restitution": 0.5,
             "friction": 0.5,
             "color": [
@@ -319,7 +320,7 @@
                 0.0,
                 0.0
             ],
-            "density": 9500.0,
+            "density": 12500.0,
             "restitution": 0.5,
             "friction": 0.5,
             "color": [
@@ -341,7 +342,7 @@
                 0.0,
                 0.0
             ],
-            "density": 9500.0,
+            "density": 12500.0,
             "restitution": 0.5,
             "friction": 0.5,
             "color": [
@@ -363,7 +364,7 @@
                 0.0,
                 0.0
             ],
-            "density": 9500.0,
+            "density": 12500.0,
             "restitution": 0.5,
             "friction": 0.5,
             "color": [
@@ -385,7 +386,7 @@
                 0.0,
                 0.0
             ],
-            "density": 9500.0,
+            "density": 12500.0,
             "restitution": 0.5,
             "friction": 0.5,
             "color": [
@@ -407,7 +408,7 @@
                 0.0,
                 0.0
             ],
-            "density": 9500.0,
+            "density": 12500.0,
             "restitution": 0.5,
             "friction": 0.5,
             "color": [
@@ -429,7 +430,7 @@
                 0.0,
                 0.0
             ],
-            "density": 9500.0,
+            "density": 12500.0,
             "restitution": 0.5,
             "friction": 0.5,
             "color": [
@@ -451,7 +452,7 @@
                 0.0,
                 0.0
             ],
-            "density": 9500.0,
+            "density": 12500.0,
             "restitution": 0.5,
             "friction": 0.5,
             "color": [
@@ -473,7 +474,7 @@
                 0.0,
                 0.0
             ],
-            "density": 9500.0,
+            "density": 12500.0,
             "restitution": 0.5,
             "friction": 0.5,
             "color": [
@@ -495,7 +496,7 @@
                 0.0,
                 0.0
             ],
-            "density": 9500.0,
+            "density": 12500.0,
             "restitution": 0.5,
             "friction": 0.5,
             "color": [
@@ -517,7 +518,7 @@
                 0.0,
                 0.0
             ],
-            "density": 9500.0,
+            "density": 12500.0,
             "restitution": 0.5,
             "friction": 0.5,
             "color": [
@@ -539,7 +540,7 @@
                 0.0,
                 0.0
             ],
-            "density": 9500.0,
+            "density": 12500.0,
             "restitution": 0.5,
             "friction": 0.5,
             "color": [
@@ -561,7 +562,7 @@
                 0.0,
                 0.0
             ],
-            "density": 9500.0,
+            "density": 12500.0,
             "restitution": 0.5,
             "friction": 0.5,
             "color": [
@@ -583,7 +584,7 @@
                 0.0,
                 0.0
             ],
-            "density": 9500.0,
+            "density": 12500.0,
             "restitution": 0.5,
             "friction": 0.5,
             "color": [
@@ -605,7 +606,7 @@
                 0.0,
                 0.0
             ],
-            "density": 9500.0,
+            "density": 12500.0,
             "restitution": 0.5,
             "friction": 0.5,
             "color": [
@@ -627,7 +628,7 @@
                 0.0,
                 0.0
             ],
-            "density": 9500.0,
+            "density": 12500.0,
             "restitution": 0.5,
             "friction": 0.5,
             "color": [
@@ -649,7 +650,7 @@
                 0.0,
                 0.0
             ],
-            "density": 9500.0,
+            "density": 12500.0,
             "restitution": 0.5,
             "friction": 0.5,
             "color": [
@@ -671,7 +672,7 @@
                 0.0,
                 0.0
             ],
-            "density": 9500.0,
+            "density": 12500.0,
             "restitution": 0.5,
             "friction": 0.5,
             "color": [
@@ -693,7 +694,7 @@
                 0.0,
                 0.0
             ],
-            "density": 9500.0,
+            "density": 12500.0,
             "restitution": 0.5,
             "friction": 0.5,
             "color": [
@@ -715,7 +716,7 @@
                 0.0,
                 0.0
             ],
-            "density": 9500.0,
+            "density": 12500.0,
             "restitution": 0.5,
             "friction": 0.5,
             "color": [
