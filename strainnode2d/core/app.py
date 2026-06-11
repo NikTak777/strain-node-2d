@@ -32,7 +32,7 @@ from strainnode2d.core.camera import Camera
 
 FPS = 1000
 WORLD_WIDTH, WORLD_HEIGHT = 200.0, 80.0
-SCALE = 20.0
+SCALE = 10.0
 WIDTH, HEIGHT = 1920, 1080
 
 

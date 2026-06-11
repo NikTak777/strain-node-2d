@@ -24,7 +24,7 @@ from tkinter import filedialog
 from strainnode2d.physics.objects import Object, MotorWheel
 from strainnode2d.physics.springs import Spring, Rope, Hydraulic, Beam, AeroBeam
 from strainnode2d.physics.serializer import save_scene, load_scene
-from strainnode2d.ui.dialogs import show_edit_dialog, show_type_dialog
+from strainnode2d.ui.dialogs import show_edit_dialog
 
 
 class InputHandler:
@@ -54,7 +54,7 @@ class InputHandler:
                 zoom_factor = 1.1 if event.y > 0 else 0.9
                 app.camera.zoom *= zoom_factor
                 # Ограничивает приближение/отдаление (от 10% до 1000%)
-                app.camera.zoom = max(0.1, min(app.camera.zoom, 100.0))
+                app.camera.zoom = max(0.1, min(app.camera.zoom, 10.0))
 
             # Обработка событий мыши
             elif event.type == pygame.MOUSEBUTTONDOWN:
@@ -67,47 +67,8 @@ class InputHandler:
 
                 if event.button == 1:  # ЛКМ (Выделение или перетаскивание)
 
-                    # Перехват клика по кнопке инспектора
-                    if len(app.selected_springs) == 1:
-                        target_spring = app.selected_springs[0]
-
-                        # Проверка клика по новой кнопке "Повернуть нормаль"
-                        if getattr(app.inspector, 'flip_btn_rect',
-                                   None) and app.inspector.flip_btn_rect.collidepoint(mx, my):
-                            if target_spring.__class__.__name__ == "AeroBeam":
-                                target_spring.normal_flip *= -1
-                            continue
-
-                        if getattr(app.inspector, 'change_btn_rect',
-                                   None) and app.inspector.change_btn_rect.collidepoint(mx, my):
-
-                            obj1, obj2 = target_spring.obj1, target_spring.obj2
-
-                            # Вызов окна Tkinter
-                            new_type = show_type_dialog(target_spring.__class__.__name__)
-
-                            # Если пользователь выбрал другой тип и нажал "Применить"
-                            if new_type and new_type != target_spring.__class__.__name__:
-                                if target_spring in app.sim.springs:
-                                    app.sim.springs.remove(target_spring)
-
-                                new_link = None
-                                if new_type == "Spring":
-                                    new_link = Spring(obj1, obj2, k=20000.0, d=160.0)
-                                elif new_type == "Rope":
-                                    new_link = Rope(obj1, obj2, k=150000.0, d=500.0)
-                                elif new_type == "Hydraulic":
-                                    new_link = Hydraulic(obj1, obj2, speed=2.0, min_length=0.5, max_length=10.0)
-                                elif new_type == "Beam":
-                                    new_link = Beam(obj1, obj2)
-                                elif new_type == "AeroBeam":
-                                    new_link = AeroBeam(obj1, obj2, lift_coef=2.5, chord=2.0)
-
-                                if new_link:
-                                    app.sim.add_spring(new_link)
-                                    app.selected_springs = [new_link]  # Инспектор останется открытым
-
-                            continue  # Цикл прерывается, чтобы клик не "провалился" в физический движок
+                    if app.inspector.handle_mouse_down(mx, my, app):
+                        continue
 
                     clicked_obj = None
                     for obj in app.sim.objects:
@@ -199,6 +160,9 @@ class InputHandler:
                         app.selected_springs.clear()
 
             elif event.type == pygame.MOUSEMOTION:
+                mx, my = event.pos
+                app.inspector.handle_mouse_motion(mx, my, app)
+
                 if app.is_selecting:
                     app.selection_current = event.pos
 
@@ -216,6 +180,7 @@ class InputHandler:
 
             elif event.type == pygame.MOUSEBUTTONUP:
                 if event.button == 1:
+                    app.inspector.handle_mouse_up()
                     app.is_panning = False
                     if app.dragged_obj and app.dragged_obj.is_static:
                         app.dragged_obj.velocity = [0.0, 0.0]
