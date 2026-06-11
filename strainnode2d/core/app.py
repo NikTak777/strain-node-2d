@@ -287,10 +287,11 @@ class SimulationApp:
             self.screen.blit(rotated_surf, rect.topleft)
 
             if obj.is_static:
-                frozen_radius = max(2, int(6 * self.camera.zoom))
+                obj_screen_radius = max(3, int(obj.radius * eff_scale))
+                frozen_radius = max(2, int(obj_screen_radius * 0.55))
                 pygame.draw.circle(self.screen, (255, 50, 50), (screen_x, screen_y), frozen_radius)
                 pygame.draw.circle(self.screen, (0, 0, 0), (screen_x, screen_y), frozen_radius,
-                                   max(1, int(2 * self.camera.zoom)))
+                                   max(1, int(frozen_radius * 0.45)))
 
             if obj in self.selected_nodes:
                 pygame.draw.circle(self.screen, (255, 215, 0), (screen_x, screen_y), int(obj.radius * eff_scale) + 4, 3)
