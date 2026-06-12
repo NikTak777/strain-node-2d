@@ -24,6 +24,7 @@ from tkinter import filedialog
 from strainnode2d.physics.objects import Object, MotorWheel
 from strainnode2d.physics.springs import Spring, Hydraulic
 from strainnode2d.core.entity_conversion import SPRING_TYPE_NAMES
+from strainnode2d.core.clipboard import snapshot_selection, paste_clipboard
 from strainnode2d.physics.serializer import save_scene, load_scene
 
 
@@ -314,111 +315,27 @@ class InputHandler:
                 mods = pygame.key.get_mods()
                 is_ctrl = bool(mods & pygame.KMOD_CTRL)
 
-                # Копирование объектов (Ctrl + C)
                 if event.key == pygame.K_c and is_ctrl:
                     if len(app.selected_nodes) > 0:
-                        # Находим "центр масс" выделенной геометрии
-                        cx = sum(n.location[0] for n in app.selected_nodes) / len(app.selected_nodes)
-                        cy = sum(n.location[1] for n in app.selected_nodes) / len(app.selected_nodes)
+                        app.clipboard = snapshot_selection(app.selected_nodes, app.sim.springs)
+                        print(
+                            f"Скопировано узлов: {len(app.clipboard['nodes'])}, "
+                            f"балок: {len(app.clipboard['springs'])}"
+                        )
 
-                        clipboard_nodes = []
-                        node_to_id = {}  # Карта: Объект -> Временный ID
-
-                        # Сохраняем узлы
-                        for i, node in enumerate(app.selected_nodes):
-                            node_to_id[node] = i  # Запоминаем ID этого узла
-                            node_data = {
-                                "class": node.__class__,
-                                "rel_x": node.location[0] - cx,  # Сохраняем координату ОТНОСИТЕЛЬНО центра
-                                "rel_y": node.location[1] - cy,
-                                "radius": node.radius,
-                                "density": node.density,
-                                "restitution": node.restitution,
-                                "friction": node.friction,
-                                "color": node.color,
-                                "is_static": getattr(node, 'is_static', False)
-                            }
-                            if isinstance(node, MotorWheel):
-                                node_data["power"] = node.power
-                            clipboard_nodes.append(node_data)
-
-                        clipboard_springs = []
-                        # Сохраняем балки (только те, чьи оба узла выделены)
-                        for spring in app.sim.springs:
-                            if spring.obj1 in node_to_id and spring.obj2 in node_to_id:
-                                spring_data = {
-                                    "class": spring.__class__,
-                                    "id1": node_to_id[spring.obj1],  # Запоминаем, какие временные ID она соединяет
-                                    "id2": node_to_id[spring.obj2],
-                                    "k": spring.k,
-                                    "d": spring.d,
-                                    "yield_limit": spring.yield_limit,
-                                    "break_limit": spring.break_limit,
-                                    "rest_length": spring.rest_length
-                                }
-                                if isinstance(spring, Hydraulic):
-                                    spring_data["speed"] = spring.speed
-                                    spring_data["min_length"] = spring.min_length
-                                    spring_data["max_length"] = spring.max_length
-                                clipboard_springs.append(spring_data)
-
-                        app.clipboard = {
-                            "nodes": clipboard_nodes,
-                            "springs": clipboard_springs
-                        }
-                        print(f"Скопировано узлов: {len(clipboard_nodes)}, балок: {len(clipboard_springs)}")
-
-                    # --- НОВОЕ: СТРУКТУРНАЯ ВСТАВКА (Ctrl + V) ---
                 elif event.key == pygame.K_v and is_ctrl:
-                    if app.clipboard is not None and "nodes" in app.clipboard:
+                    if app.clipboard is not None and app.clipboard.get("nodes"):
                         mx, my = pygame.mouse.get_pos()
                         phys_mx, phys_my = app.camera.screen_to_phys(mx, my, app.scale)
-
-                        new_nodes = []
 
                         app.selected_nodes.clear()
                         app.selected_springs.clear()
 
-                        # 1. Спавним все новые узлы
-                        for node_data in app.clipboard["nodes"]:
-                            target_class = node_data["class"]
-                            new_obj = target_class(
-                                x=phys_mx + node_data["rel_x"],
-                                y=phys_my + node_data["rel_y"],
-                                radius=node_data["radius"],
-                                velocity=[0.0, 0.0],
-                                density=node_data["density"],
-                                restitution=node_data["restitution"],
-                                friction=node_data["friction"],
-                                color=node_data["color"]
-                            )
-                            new_obj.is_static = node_data["is_static"]
-                            if issubclass(target_class, MotorWheel):
-                                new_obj.power = node_data.get("power", 25.0)
-
+                        new_nodes, new_springs = paste_clipboard(app.clipboard, phys_mx, phys_my)
+                        for new_obj in new_nodes:
                             app.sim.add_object(new_obj)
-                            new_nodes.append(new_obj)
                             app.selected_nodes.append(new_obj)
-
-                        # 2. Спавним балки и привязываем их к НОВЫМ узлам по сохраненным ID
-                        for spring_data in app.clipboard["springs"]:
-                            target_class = spring_data["class"]
-                            obj1 = new_nodes[spring_data["id1"]]
-                            obj2 = new_nodes[spring_data["id2"]]
-
-                            new_spring = target_class(
-                                obj1, obj2,
-                                k=spring_data["k"],
-                                d=spring_data["d"],
-                                yield_limit=spring_data["yield_limit"],
-                                break_limit=spring_data["break_limit"],
-                                rest_length=spring_data["rest_length"]
-                            )
-                            if issubclass(target_class, Hydraulic):
-                                new_spring.speed = spring_data.get("speed", 2.0)
-                                new_spring.min_length = spring_data.get("min_length", 0.5)
-                                new_spring.max_length = spring_data.get("max_length", 5.0)
-
+                        for new_spring in new_springs:
                             app.sim.add_spring(new_spring)
                             app.selected_springs.append(new_spring)
 
