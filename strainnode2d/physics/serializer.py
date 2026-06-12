@@ -83,6 +83,7 @@ def restore_scene(sim, data: dict):
     """Восстанавливает сцену из снимка, полностью заменяя текущую."""
     sim.objects.clear()
     sim.springs.clear()
+    sim.invalidate_collision_springs_cache()
     id_to_obj = {}
 
     for obj_data in data["objects"]:

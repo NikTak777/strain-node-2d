@@ -199,6 +199,7 @@ class InspectorHUD:
             return False
         if source in app.sim.springs:
             app.sim.springs.remove(source)
+        app.sim.invalidate_collision_springs_cache()
         app.sim.add_spring(new_link)
         app.selected_springs = [new_link]
         self.close_type_picker()
@@ -355,6 +356,7 @@ class InspectorHUD:
         if isinstance(target, Spring):
             if self.collision_btn_rect and self.collision_btn_rect.collidepoint(mx, my):
                 target.collision_enabled = not target.collision_enabled
+                app.sim.invalidate_collision_springs_cache()
                 return True
             if self.flip_btn_rect and self.flip_btn_rect.collidepoint(mx, my):
                 if target.__class__.__name__ == "AeroBeam":

@@ -318,6 +318,7 @@ class InputHandler:
                         if node in app.sim.objects:
                             app.sim.objects.remove(node)
 
+                    app.sim.invalidate_collision_springs_cache()
                     app.selected_nodes.clear()
                     app.selected_springs.clear()
 
