@@ -84,9 +84,11 @@ class PhysicSimulation:
     def _apply_node_beam_collision(
         self, node: Object, ep1: Object, ep2: Object,
         x1: float, y1: float, seg_dx: float, seg_dy: float,
-        l2: float, seg_len: float, beam_r: float,
+        l2: float, seg_len: float, beam_r: float, dt: float,
     ):
         if node is ep1 or node is ep2 or getattr(node, 'is_static', False):
+            return
+        if getattr(node, 'on_ground', False):
             return
 
         px = node.location[0] - x1
@@ -148,31 +150,39 @@ class PhysicSimulation:
         v_beam_t = (1.0 - t) * v1t + t * v2t
 
         rel_vn = v_node_n - v_beam_n
-        if rel_vn >= 0:
-            return
+        if rel_vn < 0:
+            re = (node.restitution + ep1.restitution + ep2.restitution) / 3.0
+            Jn = -(1.0 + re) * rel_vn / sum_inv_imp
+            v_node_n_new = v_node_n + Jn * inv_m_n
+            v1n_new = v1n - Jn * (1.0 - t) * inv_m1 if inv_m1 > 0 else v1n
+            v2n_new = v2n - Jn * t * inv_m2 if inv_m2 > 0 else v2n
+            P_n = node.mass * abs(rel_vn) * (1.0 + re)
+        else:
+            Jn = 0.0
+            v_node_n_new = v_node_n
+            v1n_new = v1n
+            v2n_new = v2n
+            P_n = node.mass * self.g * dt
 
-        re = (node.restitution + ep1.restitution + ep2.restitution) / 3.0
-        Jn = -(1.0 + re) * rel_vn / sum_inv_imp
+        mu_s = (node.friction + ep1.friction + ep2.friction) / 3.0
+        mu_k = mu_s * 0.75
+        v_rel_t = (v_node_t - node.angular_velocity * node.radius) - v_beam_t
+        J_t_ideal = -node.mass * v_rel_t / 3.5
 
-        v_node_n_new = v_node_n + Jn * inv_m_n
-        v1n_new = v1n - Jn * (1.0 - t) * inv_m1 if inv_m1 > 0 else v1n
-        v2n_new = v2n - Jn * t * inv_m2 if inv_m2 > 0 else v2n
+        max_static = mu_s * P_n
+        if abs(J_t_ideal) <= max_static:
+            Jt = J_t_ideal
+        else:
+            Jt = math.copysign(mu_k * P_n, J_t_ideal)
 
-        v_rel_t = v_node_t - v_beam_t
-        inv_eff_mt = sum_inv_imp * 3.5
-        Jt = -v_rel_t / inv_eff_mt
-
-        fr = (node.friction + ep1.friction + ep2.friction) / 3.0
-        max_friction = fr * Jn
-        if abs(Jt) > max_friction:
-            Jt = math.copysign(max_friction, Jt)
-
+        inv_I_n = 0.0 if getattr(node, 'is_static', False) else 1.0 / node.I
         v_node_t_new = v_node_t + Jt * inv_m_n
         v1t_new = v1t - Jt * (1.0 - t) * inv_m1 if inv_m1 > 0 else v1t
         v2t_new = v2t - Jt * t * inv_m2 if inv_m2 > 0 else v2t
 
         node.velocity[0] = v_node_n_new * nx + v_node_t_new * tx
         node.velocity[1] = v_node_n_new * ny + v_node_t_new * ty
+        node.angular_velocity -= (Jt * node.radius) * inv_I_n
         if inv_m1 > 0:
             ep1.velocity[0] = v1n_new * nx + v1t_new * tx
             ep1.velocity[1] = v1n_new * ny + v1t_new * ty
@@ -347,7 +357,7 @@ class PhysicSimulation:
                             obj2.velocity[0] = v2n_new * nx + v2t_new * tx
                             obj2.velocity[1] = v2n_new * ny + v2t_new * ty
 
-    def resolve_node_beam_collisions(self):
+    def resolve_node_beam_collisions(self, dt: float):
         """
         Столкновения узлов с балками, у которых включена коллизия.
         Broad-phase: spatial hash по AABB отрезка балки.
@@ -401,7 +411,7 @@ class PhysicSimulation:
 
             for node in candidates:
                 self._apply_node_beam_collision(
-                    node, ep1, ep2, x1, y1, seg_dx, seg_dy, l2, seg_len, beam_r,
+                    node, ep1, ep2, x1, y1, seg_dx, seg_dy, l2, seg_len, beam_r, dt,
                 )
 
     def resolve_collisions(self, obj: Object):
@@ -656,12 +666,15 @@ class PhysicSimulation:
             obj.on_ground = False
 
         # Структурированная обработка столкновений
-        # Приоритетное вычисление столкновений шаров между собой
         self.resolve_ball_collisions()
-        self.resolve_node_beam_collisions()
 
-        # Обработка столкновений со стенами
-        # Это гарантирует, что если один шар вытолкнет другой наружу, стена вернет его обратно на экран
+        # Мир до node-beam: пол задаёт on_ground, колёса на земле не цепляются за свои балки
+        for obj in self.objects:
+            self.resolve_collisions(obj)
+
+        self.resolve_node_beam_collisions(dt)
+
+        # Повтор: вернуть объекты в границы после ball/node-beam
         for obj in self.objects:
             self.resolve_collisions(obj)
 
