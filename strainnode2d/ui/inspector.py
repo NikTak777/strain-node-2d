@@ -25,6 +25,19 @@ from strainnode2d.core.camera import Camera
 
 
 class InspectorHUD:
+    SPRING_FIELDS = [
+        ("Жесткость (k):", "k"),
+        ("Демпфер (d):", "d"),
+        ("Предел текучести:", "yield_limit"),
+        ("Длина покоя (м):", "rest_length"),
+    ]
+    OBJECT_FIELDS = [
+        ("Радиус (м):", "radius"),
+        ("Плотность:", "density"),
+        ("Упругость:", "restitution"),
+        ("Трение:", "friction"),
+    ]
+
     def __init__(self):
         self.font = pygame.font.SysFont("Consolas", 14)
         self.bg_color = (25, 25, 30, 210)
@@ -44,9 +57,25 @@ class InspectorHUD:
         self.pin_btn_rect = None
         self.change_btn_rect = None
         self.flip_btn_rect = None
+        self.edit_btn_rect = None
+        self.save_btn_rect = None
+        self.cancel_btn_rect = None
+        self.field_rects = {}
+
+        self.edit_mode = False
+        self._edit_target = None
+        self.draft = {}
+        self.active_field = None
+        self.error_message = None
 
         self.header_height = 35
         self.padding = 12
+        self.field_height = 22
+        self.btn_height = 25
+
+    @property
+    def is_editing(self) -> bool:
+        return self.edit_mode
 
     @staticmethod
     def get_inspection_target(app) -> Optional[Union[Object, Spring]]:
@@ -59,12 +88,84 @@ class InspectorHUD:
     def is_visible(self, app) -> bool:
         return self.get_inspection_target(app) is not None
 
+    def _get_fields(self, target: Union[Object, Spring]) -> list[tuple[str, str]]:
+        if isinstance(target, Spring):
+            return list(self.SPRING_FIELDS)
+        fields = list(self.OBJECT_FIELDS)
+        if isinstance(target, MotorWheel):
+            fields.append(("Мощность:", "power"))
+        return fields
+
+    def open_edit_mode(self, target: Union[Object, Spring]):
+        self.edit_mode = True
+        self._edit_target = target
+        self.active_field = None
+        self.error_message = None
+        self.draft = {key: str(getattr(target, key)) for _, key in self._get_fields(target)}
+
+    def close_edit_mode(self):
+        self.edit_mode = False
+        self._edit_target = None
+        self.draft = {}
+        self.active_field = None
+        self.error_message = None
+        self.field_rects = {}
+
     def toggle_pin(self):
         if self.pinned:
             self.screen_x = self.last_hud_x
             self.screen_y = self.last_hud_y
         self.pinned = not self.pinned
         self.is_dragging = False
+
+    def handle_keydown(self, event: pygame.event.Event, app) -> bool:
+        if not self.edit_mode or not self.is_visible(app):
+            return False
+
+        if event.key == pygame.K_ESCAPE:
+            self.close_edit_mode()
+            return True
+
+        if event.key in (pygame.K_RETURN, pygame.K_KP_ENTER):
+            target = self.get_inspection_target(app)
+            if target is not None:
+                self._try_save(target)
+            return True
+
+        if event.key == pygame.K_BACKSPACE and self.active_field:
+            value = self.draft.get(self.active_field, "")
+            self.draft[self.active_field] = value[:-1]
+            self.error_message = None
+            return True
+
+        if event.key == pygame.K_TAB:
+            fields = [key for _, key in self._get_fields(self.get_inspection_target(app))]
+            if not fields:
+                return True
+            if self.active_field not in fields:
+                self.active_field = fields[0]
+            else:
+                idx = fields.index(self.active_field)
+                self.active_field = fields[(idx + 1) % len(fields)]
+            return True
+
+        return True
+
+    def handle_textinput(self, text: str, app) -> bool:
+        if not self.edit_mode or not self.is_visible(app) or not self.active_field:
+            return False
+
+        for ch in text:
+            if not (ch.isdigit() or ch in ".-"):
+                continue
+            current = self.draft.get(self.active_field, "")
+            if ch == "-" and current:
+                continue
+            if ch == "." and "." in current:
+                continue
+            self.draft[self.active_field] = current + ch
+        self.error_message = None
+        return True
 
     def handle_mouse_down(self, mx: int, my: int, app) -> bool:
         if not self.is_visible(app) or self.panel_rect is None:
@@ -75,6 +176,29 @@ class InspectorHUD:
             return True
 
         target = self.get_inspection_target(app)
+
+        if self.edit_mode:
+            if self.save_btn_rect and self.save_btn_rect.collidepoint(mx, my):
+                self._try_save(target)
+                return True
+            if self.cancel_btn_rect and self.cancel_btn_rect.collidepoint(mx, my):
+                self.close_edit_mode()
+                return True
+            for key, rect in self.field_rects.items():
+                if rect.collidepoint(mx, my):
+                    self.active_field = key
+                    self.error_message = None
+                    return True
+            if self.panel_rect.collidepoint(mx, my):
+                if not self.pinned and self.title_rect and self.title_rect.collidepoint(mx, my):
+                    self.is_dragging = True
+                    self.drag_offset = (mx - self.screen_x, my - self.screen_y)
+                return True
+            return False
+
+        if self.edit_btn_rect and self.edit_btn_rect.collidepoint(mx, my):
+            self.open_edit_mode(target)
+            return True
 
         if isinstance(target, Spring):
             if self.flip_btn_rect and self.flip_btn_rect.collidepoint(mx, my):
@@ -111,6 +235,32 @@ class InspectorHUD:
 
     def handle_mouse_up(self):
         self.is_dragging = False
+
+    def _try_save(self, target: Union[Object, Spring]):
+        try:
+            values = {key: float(self.draft[key]) for _, key in self._get_fields(target)}
+        except (ValueError, KeyError):
+            self.error_message = "Некорректные числа"
+            return
+
+        if isinstance(target, Object):
+            target.radius = values["radius"]
+            target.density = values["density"]
+            target.restitution = values["restitution"]
+            target.friction = values["friction"]
+            if isinstance(target, MotorWheel) and "power" in values:
+                target.power = values["power"]
+            volume = (4.0 / 3.0) * math.pi * (target.radius ** 3)
+            target.mass = target.density * volume
+            target.I = 0.4 * target.mass * (target.radius ** 2)
+            target.surface = None
+        elif isinstance(target, Spring):
+            target.k = values["k"]
+            target.d = values["d"]
+            target.yield_limit = values["yield_limit"]
+            target.rest_length = values["rest_length"]
+
+        self.close_edit_mode()
 
     def _change_spring_type(self, app, target_spring: Spring):
         from strainnode2d.ui.dialogs import show_type_dialog
@@ -172,8 +322,10 @@ class InspectorHUD:
         return self._clamp_position(hud_x, hud_y, bg_width, bg_height, screen_width, screen_height)
 
     @staticmethod
-    def _get_header_label(target: Union[Object, Spring], pinned: bool) -> str:
+    def _get_header_label(target: Union[Object, Spring], pinned: bool, editing: bool) -> str:
         kind = "узла" if isinstance(target, Object) else "балки"
+        if editing:
+            return f"Редактирование {kind}"
         status = "закреплён" if pinned else "свободен"
         return f"Инспектор {kind}: {status}"
 
@@ -187,8 +339,10 @@ class InspectorHUD:
         pin_y = hud_y + (self.header_height - pin_size) // 2
         self.pin_btn_rect = pygame.Rect(pin_x, pin_y, pin_size, pin_size)
 
-        label = self._get_header_label(target, self.pinned)
-        label_color = (190, 210, 255) if self.pinned else (255, 215, 140)
+        label = self._get_header_label(target, self.pinned, self.edit_mode)
+        label_color = (255, 200, 120) if self.edit_mode else (
+            (190, 210, 255) if self.pinned else (255, 215, 140)
+        )
         label_surf = self.font.render(label, True, label_color)
         screen.blit(label_surf, (hud_x + self.padding, hud_y + (self.header_height - label_surf.get_height()) // 2))
 
@@ -200,19 +354,41 @@ class InspectorHUD:
             pygame.draw.line(screen, (100, 220, 120),
                              (pin_x + 6, pin_y + 12), (pin_x + 13, pin_y + 4), 2)
 
-    def draw(self, screen: pygame.Surface, target: Union[Object, Spring], scale: float,
-             camera: Camera, screen_width: int, screen_height: int) -> None:
-        """
-        Отрисовка информационного окна (HUD) с характеристиками выбранного физического объекта.
-        """
-        self.change_btn_rect = None
-        self.flip_btn_rect = None
+    def _draw_button(self, screen, rect: pygame.Rect, text: str, color: tuple):
+        pygame.draw.rect(screen, color, rect, border_radius=5)
+        label = self.font.render(text, True, (255, 255, 255))
+        screen.blit(label, (rect.centerx - label.get_width() // 2,
+                            rect.centery - label.get_height() // 2))
 
+    def _measure_content(self, target: Union[Object, Spring]) -> tuple[int, int]:
+        if self.edit_mode:
+            fields = self._get_fields(target)
+            label_width = max(self.font.size(label)[0] for label, _ in fields)
+            input_width = 110
+            row_width = label_width + 8 + input_width
+            rows = len(fields) + (1 if self.error_message else 0)
+            content_height = (
+                self.padding * 2
+                + rows * (self.field_height + 4)
+                + self.btn_height + 10
+            )
+            return row_width + self.padding * 2, content_height
+
+        lines = self._build_view_lines(target)
+        rendered = [self.font.render(line, True, (240, 240, 240)) for line in lines]
+        max_width = max(surf.get_width() for surf in rendered)
+        total_height = sum(surf.get_height() for surf in rendered) + (len(lines) - 1) * 2
+        content_height = total_height + self.padding * 2 + self.btn_height + 10
+        if isinstance(target, Spring):
+            content_height += self.btn_height + 5
+            if target.__class__.__name__ == "AeroBeam":
+                content_height += self.btn_height + 5
+        return max_width + self.padding * 2, content_height
+
+    def _build_view_lines(self, target: Union[Object, Spring]) -> list[str]:
         lines = []
-
         if isinstance(target, Object):
             speed = math.sqrt(target.velocity[0] ** 2 + target.velocity[1] ** 2)
-
             lines.extend([
                 f"----- {target.__class__.__name__} -----",
                 f"ID/Метка:         #{id(target) % 1000}",
@@ -223,40 +399,114 @@ class InspectorHUD:
                 f"Коэф. трения:     {target.friction:.2f}",
                 f"Статичный:        {'Да' if getattr(target, 'is_static', False) else 'Нет'}",
                 f"Скор. общ:        {speed:.2f} м/с",
-                f"Вращение:         {target.angular_velocity:.2f} рад/с"
+                f"Вращение:         {target.angular_velocity:.2f} рад/с",
             ])
-
             if isinstance(target, MotorWheel):
                 lines.append(f"Мотор:           {'Вкл' if target.direction != 0 else 'Выкл'}")
                 lines.append(f"Мощность:        {target.power:.2f}")
-
         elif isinstance(target, Spring):
             strain_pct = (target.current_strain / target.yield_limit) * 100 if target.yield_limit else 0
-
             lines.extend([
                 f"--- {target.__class__.__name__} ---",
                 f"Жесткость: {target.k:.0f}",
                 f"Демпфер:   {target.d:.0f}",
                 f"Натяжение: {target.current_strain:.2f} м",
                 f"Нагрузка:  {abs(strain_pct):.1f}%",
-                f"Предел:    {target.yield_limit:.2f} м"
+                f"Предел:    {target.yield_limit:.2f} м",
             ])
+        return lines
 
+    def _draw_edit_form(self, screen, hud_x: int, hud_y: int, bg_width: int,
+                        target: Union[Object, Spring]) -> int:
+        self.field_rects = {}
+        self.save_btn_rect = None
+        self.cancel_btn_rect = None
+
+        fields = self._get_fields(target)
+        label_width = max(self.font.size(label)[0] for label, _ in fields)
+        input_x = hud_x + self.padding + label_width + 8
+        input_width = bg_width - (input_x - hud_x) - self.padding
+
+        curr_y = hud_y + self.header_height + self.padding
+        for label_text, key in fields:
+            label_surf = self.font.render(label_text, True, (200, 200, 210))
+            screen.blit(label_surf, (hud_x + self.padding, curr_y + 3))
+
+            field_rect = pygame.Rect(input_x, curr_y, input_width, self.field_height)
+            is_active = self.active_field == key
+            bg = (45, 50, 70) if is_active else (35, 38, 50)
+            border = (255, 215, 80) if is_active else (90, 100, 130)
+            pygame.draw.rect(screen, bg, field_rect, border_radius=4)
+            pygame.draw.rect(screen, border, field_rect, width=1, border_radius=4)
+
+            value = self.draft.get(key, "")
+            value_surf = self.font.render(value, True, (240, 240, 240))
+            screen.blit(value_surf, (field_rect.x + 6, field_rect.centery - value_surf.get_height() // 2))
+            self.field_rects[key] = field_rect
+            curr_y += self.field_height + 4
+
+        if self.error_message:
+            err_surf = self.font.render(self.error_message, True, (255, 100, 100))
+            screen.blit(err_surf, (hud_x + self.padding, curr_y + 2))
+            curr_y += self.field_height
+
+        curr_y += 6
+        btn_gap = 8
+        btn_width = (bg_width - self.padding * 2 - btn_gap) // 2
+        self.save_btn_rect = pygame.Rect(hud_x + self.padding, curr_y, btn_width, self.btn_height)
+        self.cancel_btn_rect = pygame.Rect(
+            hud_x + self.padding + btn_width + btn_gap, curr_y, btn_width, self.btn_height
+        )
+        self._draw_button(screen, self.save_btn_rect, "Сохранить", (60, 140, 80))
+        self._draw_button(screen, self.cancel_btn_rect, "Отмена", (140, 70, 70))
+        return curr_y + self.btn_height
+
+    def _draw_view_content(self, screen, hud_x: int, hud_y: int, bg_width: int,
+                           target: Union[Object, Spring]) -> int:
+        self.edit_btn_rect = None
+        self.change_btn_rect = None
+        self.flip_btn_rect = None
+
+        lines = self._build_view_lines(target)
         rendered_lines = [self.font.render(line, True, (240, 240, 240)) for line in lines]
-        max_width = max(surf.get_width() for surf in rendered_lines)
-        total_height = sum(surf.get_height() for surf in rendered_lines) + (len(lines) - 1) * 2
 
-        btn_height = 25
-        content_height = total_height + self.padding * 2
+        curr_y = hud_y + self.header_height + self.padding
+        for surf in rendered_lines:
+            screen.blit(surf, (hud_x + self.padding, curr_y))
+            curr_y += surf.get_height() + 2
+
+        curr_y += 5
+        btn_rect = pygame.Rect(hud_x + self.padding, curr_y, bg_width - self.padding * 2, self.btn_height)
+        self._draw_button(screen, btn_rect, "Редактировать", (80, 120, 180))
+        self.edit_btn_rect = btn_rect
+        curr_y += self.btn_height + 5
+
         if isinstance(target, Spring):
-            content_height += btn_height + 10
+            btn_rect = pygame.Rect(hud_x + self.padding, curr_y, bg_width - self.padding * 2, self.btn_height)
+            self._draw_button(screen, btn_rect, "Изменить тип", (70, 100, 200))
+            self.change_btn_rect = btn_rect
+            curr_y += self.btn_height + 5
+
             if target.__class__.__name__ == "AeroBeam":
-                content_height += btn_height + 5
+                flip_rect = pygame.Rect(hud_x + self.padding, curr_y, bg_width - self.padding * 2, self.btn_height)
+                self._draw_button(screen, flip_rect, "Повернуть нормаль", (200, 100, 70))
+                self.flip_btn_rect = flip_rect
+                curr_y += self.btn_height + 5
+
+        return curr_y
+
+    def draw(self, screen: pygame.Surface, target: Union[Object, Spring], scale: float,
+             camera: Camera, screen_width: int, screen_height: int) -> None:
+        if self.edit_mode and self._edit_target is not target:
+            self.close_edit_mode()
 
         pin_size = 16
-        header_label_surf = self.font.render(self._get_header_label(target, self.pinned), True, (255, 255, 255))
+        header_label_surf = self.font.render(
+            self._get_header_label(target, self.pinned, self.edit_mode), True, (255, 255, 255)
+        )
         min_header_width = header_label_surf.get_width() + self.padding * 2 + pin_size + 8
-        bg_width = max(max_width + self.padding * 2, min_header_width)
+        content_width, content_height = self._measure_content(target)
+        bg_width = max(content_width, min_header_width)
         bg_height = self.header_height + content_height
 
         if self.pinned:
@@ -281,28 +531,9 @@ class InspectorHUD:
 
         self._draw_header(screen, hud_x, hud_y, bg_width, target)
 
-        curr_y = hud_y + self.header_height + self.padding
-        for surf in rendered_lines:
-            screen.blit(surf, (hud_x + self.padding, curr_y))
-            curr_y += surf.get_height() + 2
-
-        if isinstance(target, Spring):
-            curr_y += 5
-            btn_rect = pygame.Rect(hud_x + self.padding, curr_y, bg_width - self.padding * 2, btn_height)
-            pygame.draw.rect(screen, (70, 100, 200), btn_rect, border_radius=5)
-
-            btn_text = self.font.render("Изменить тип", True, (255, 255, 255))
-            screen.blit(btn_text, (btn_rect.centerx - btn_text.get_width() // 2,
-                                    btn_rect.centery - btn_text.get_height() // 2))
-            self.change_btn_rect = btn_rect
-
-            if target.__class__.__name__ == "AeroBeam":
-                curr_y += btn_height + 5
-                flip_rect = pygame.Rect(hud_x + self.padding, curr_y, bg_width - self.padding * 2, btn_height)
-                pygame.draw.rect(screen, (200, 100, 70), flip_rect, border_radius=5)
-                flip_text = self.font.render("Повернуть нормаль", True, (255, 255, 255))
-                screen.blit(flip_text, (flip_rect.centerx - flip_text.get_width() // 2,
-                                        flip_rect.centery - flip_text.get_height() // 2))
-                self.flip_btn_rect = flip_rect
+        if self.edit_mode:
+            self._draw_edit_form(screen, hud_x, hud_y, bg_width, target)
+        else:
+            self._draw_view_content(screen, hud_x, hud_y, bg_width, target)
 
         pygame.draw.rect(screen, self.border_color, self.panel_rect, width=2, border_radius=10)

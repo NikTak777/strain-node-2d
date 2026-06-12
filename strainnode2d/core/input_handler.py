@@ -24,7 +24,6 @@ from tkinter import filedialog
 from strainnode2d.physics.objects import Object, MotorWheel
 from strainnode2d.physics.springs import Spring, Rope, Hydraulic, Beam, AeroBeam
 from strainnode2d.physics.serializer import save_scene, load_scene
-from strainnode2d.ui.dialogs import show_edit_dialog
 
 
 class InputHandler:
@@ -214,8 +213,14 @@ class InputHandler:
                                 if spring not in app.selected_springs:
                                     app.selected_springs.append(spring)
 
+            elif event.type == pygame.TEXTINPUT:
+                if app.inspector.handle_textinput(event.text, app):
+                    continue
+
             # Обработка нажатий клавиш на клавиатуре
             elif event.type == pygame.KEYDOWN:
+                if app.inspector.is_editing and app.inspector.handle_keydown(event, app):
+                    continue
 
                 # Управление временем
                 if event.key == pygame.K_SPACE:
@@ -302,32 +307,10 @@ class InputHandler:
                         load_scene(app.sim, filepath)
                         app.focus_on_loaded_scene()
 
-                # Редактирование (E)
                 elif event.key == pygame.K_e:
-                    target = None
-                    if len(app.selected_springs) == 1:
-                        target = app.selected_springs[0]
-                    elif len(app.selected_nodes) == 1:
-                        target = app.selected_nodes[0]
-
+                    target = app.inspector.get_inspection_target(app)
                     if target is not None:
-                        new_data = show_edit_dialog(target)
-                        if new_data:
-                            if isinstance(target, Object):
-                                target.radius = new_data["radius"]
-                                target.density = new_data["density"]
-                                target.restitution = new_data["restitution"]
-                                target.friction = new_data["friction"]
-                                if "power" in new_data: target.power = new_data["power"]
-                                volume = (4.0 / 3.0) * math.pi * (target.radius ** 3)
-                                target.mass = target.density * volume
-                                target.I = 0.4 * target.mass * (target.radius ** 2)
-                                target.surface = None
-                            elif isinstance(target, Spring):
-                                target.k = new_data["k"]
-                                target.d = new_data["d"]
-                                target.yield_limit = new_data["yield_limit"]
-                                target.rest_length = new_data["rest_length"]
+                        app.inspector.open_edit_mode(target)
 
                 elif event.key == pygame.K_DELETE:
                     for spring in app.selected_springs:
@@ -453,8 +436,9 @@ class InputHandler:
                             app.sim.add_spring(new_spring)
                             app.selected_springs.append(new_spring)
 
-            # Отпускание клавиш (остановка моторов и гидравлики)
             elif event.type == pygame.KEYUP:
+                if app.inspector.is_editing:
+                    continue
                 if event.key in (pygame.K_a, pygame.K_d):
                     for obj in app.sim.objects:
                         if isinstance(obj, MotorWheel): obj.direction = 0
