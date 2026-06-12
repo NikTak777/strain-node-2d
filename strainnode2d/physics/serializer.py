@@ -21,17 +21,13 @@ from strainnode2d.physics.objects import Object, MotorWheel, StructuralNode
 from strainnode2d.physics.springs import Spring, Rope, Hydraulic, Beam, AeroBeam
 
 
-def save_scene(sim, filename):
-    """Сохраняет текущее состояние симуляции в JSON файл."""
+def snapshot_scene(sim) -> dict:
+    """Снимок текущей сцены в память (для быстрого сохранения / восстановления)."""
     data = {"objects": [], "springs": []}
-
-    # Словарь для быстрого поиска ID объекта по его ссылке в памяти
     obj_to_id = {}
 
-    # 1. Сохраняем объекты
     for i, obj in enumerate(sim.objects):
-        obj_to_id[obj] = i  # Запоминаем ID
-
+        obj_to_id[obj] = i
         obj_data = {
             "id": i,
             "type": obj.__class__.__name__,
@@ -45,67 +41,51 @@ def save_scene(sim, filename):
             "color": list(obj.color),
             "is_static": getattr(obj, 'is_static', False),
             "angle": obj.angle,
-            "angular_velocity": obj.angular_velocity
+            "angular_velocity": obj.angular_velocity,
         }
-
-        # Если это мотор, сохраняем его специфичные свойства
         if isinstance(obj, MotorWheel):
             obj_data["power"] = obj.power
             obj_data["max_speed"] = obj.max_speed
-
         data["objects"].append(obj_data)
 
-    # 2. Сохраняем пружины
     for spring in sim.springs:
         if spring.is_broken:
             continue
-
-        # Базовые параметры, которые есть у всех балок
         spring_data = {
-            "type": spring.__class__.__name__,  # <--- Теперь мы сохраняем тип!
+            "type": spring.__class__.__name__,
             "obj1_id": obj_to_id[spring.obj1],
             "obj2_id": obj_to_id[spring.obj2],
             "k": spring.k,
             "d": spring.d,
             "yield_limit": spring.yield_limit,
             "break_limit": getattr(spring, 'break_limit', 0.35),
-            "rest_length": spring.rest_length
+            "rest_length": spring.rest_length,
         }
-
-        # Специфичные параметры для гидравлики
         if isinstance(spring, Hydraulic):
             spring_data["speed"] = spring.speed
             spring_data["min_length"] = spring.min_length
             spring_data["max_length"] = spring.max_length
-
-        # Специфичные параметры для аэро-балок
         elif isinstance(spring, AeroBeam):
             spring_data["chord"] = spring.chord
             spring_data["lift_coef"] = spring.lift_coef
             spring_data["base_drag"] = spring.base_drag
             spring_data["induced_drag"] = spring.induced_drag
             spring_data["normal_flip"] = getattr(spring, 'normal_flip', 1)
-
+        if getattr(spring, 'collision_enabled', False):
+            spring_data["collision_enabled"] = True
+            spring_data["collision_radius"] = spring.collision_radius
         data["springs"].append(spring_data)
 
-    # Записываем в файл с красивыми отступами
-    with open(filename, 'w', encoding='utf-8') as f:
-        json.dump(data, f, indent=4, ensure_ascii=False)
+    return data
 
 
-def load_scene(sim, filename):
-    """Загружает сцену из JSON файла, полностью заменяя текущую."""
-    with open(filename, 'r', encoding='utf-8') as f:
-        data = json.load(f)
-
-    # Очищаем текущую сцену
+def restore_scene(sim, data: dict):
+    """Восстанавливает сцену из снимка, полностью заменяя текущую."""
     sim.objects.clear()
     sim.springs.clear()
-
-    # Словарь для связывания ID из файла с созданными объектами
+    sim.invalidate_collision_springs_cache()
     id_to_obj = {}
 
-    # 1. Загружаем объекты (без изменений)
     for obj_data in data["objects"]:
         obj_type = obj_data["type"]
 
@@ -177,4 +157,21 @@ def load_scene(sim, filename):
             # Фолбэк на обычную пружину
             spring = Spring(obj1, obj2, **kwargs)
 
+        spring.collision_enabled = spring_data.get("collision_enabled", False)
+        spring.collision_radius = spring_data.get("collision_radius", 0.08)
+
         sim.add_spring(spring)
+
+
+def save_scene(sim, filename):
+    """Сохраняет текущее состояние симуляции в JSON файл."""
+    data = snapshot_scene(sim)
+    with open(filename, 'w', encoding='utf-8') as f:
+        json.dump(data, f, indent=4, ensure_ascii=False)
+
+
+def load_scene(sim, filename):
+    """Загружает сцену из JSON файла, полностью заменяя текущую."""
+    with open(filename, 'r', encoding='utf-8') as f:
+        data = json.load(f)
+    restore_scene(sim, data)

@@ -22,7 +22,8 @@ from strainnode2d.physics.objects import Object
 
 class Spring:
     def __init__(self, obj1: Object, obj2: Object, k: float = 15000.0, d: float = 150.0,
-                 rest_length: float = None, yield_limit: float = 0.15, break_limit: float = 0.35):
+                 rest_length: float = None, yield_limit: float = 0.15, break_limit: float = 0.35,
+                 collision_enabled: bool = False, collision_radius: float = 0.01):
         """
         Инициализация стандартной упругой балки (пружины) между двумя физическими узлами.
 
@@ -49,6 +50,8 @@ class Spring:
 
         self.yield_limit = yield_limit
         self.break_limit = break_limit
+        self.collision_enabled = collision_enabled
+        self.collision_radius = collision_radius
         self.is_broken = False
         self.current_strain = 0.0
 

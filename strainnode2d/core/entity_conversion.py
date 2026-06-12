@@ -139,6 +139,8 @@ def convert_spring_type(source: Spring, new_type: str):
         "rest_length": rest_length,
         "yield_limit": yield_limit,
         "break_limit": break_limit,
+        "collision_enabled": source.collision_enabled,
+        "collision_radius": source.collision_radius,
     }
 
     if new_type == "Spring":

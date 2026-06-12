@@ -37,6 +37,32 @@ class PhysicSimulation:
         self.g = 9.80665        # Ускорение свободного падения (м/c2)
         self.dt = 0.1           # Шаг времени симуляции (с)
         self.density = 1.29     # Плотность воздуха (кг/м3)
+        self._collision_springs_cache = None
+        self._collision_springs_dirty = True
+
+    def invalidate_collision_springs_cache(self):
+        """Сброс кэша балок с включённой коллизией."""
+        self._collision_springs_dirty = True
+
+    def get_collision_springs(self) -> list:
+        if self._collision_springs_dirty or self._collision_springs_cache is None:
+            self._collision_springs_cache = [
+                s for s in self.springs
+                if not s.is_broken and getattr(s, 'collision_enabled', False)
+            ]
+            self._collision_springs_dirty = False
+        return self._collision_springs_cache
+
+    @staticmethod
+    def _build_object_spatial_grid(objects, cell_size: float):
+        grid = defaultdict(list)
+        for obj in objects:
+            if getattr(obj, 'is_static', False):
+                continue
+            grid_x = int(obj.location[0] / cell_size)
+            grid_y = int(obj.location[1] / cell_size)
+            grid[(grid_x, grid_y)].append(obj)
+        return grid
 
     def add_object(self, obj: Object):
         """
@@ -53,6 +79,116 @@ class PhysicSimulation:
         :param spring: Экземпляр класса Spring
         """
         self.springs.append(spring)
+        self.invalidate_collision_springs_cache()
+
+    def _apply_node_beam_collision(
+        self, node: Object, ep1: Object, ep2: Object,
+        x1: float, y1: float, seg_dx: float, seg_dy: float,
+        l2: float, seg_len: float, beam_r: float, dt: float,
+    ):
+        if node is ep1 or node is ep2 or getattr(node, 'is_static', False):
+            return
+        if getattr(node, 'on_ground', False):
+            return
+
+        px = node.location[0] - x1
+        py = node.location[1] - y1
+        t = max(0.0, min(1.0, (px * seg_dx + py * seg_dy) / l2))
+
+        cx = x1 + t * seg_dx
+        cy = y1 + t * seg_dy
+        dx = node.location[0] - cx
+        dy = node.location[1] - cy
+        min_dist = node.radius + beam_r
+        min_dist_sq = min_dist * min_dist
+        dist_sq = dx * dx + dy * dy
+
+        if dist_sq >= min_dist_sq:
+            return
+
+        if dist_sq < 1e-16:
+            nx = -seg_dy / seg_len
+            ny = seg_dx / seg_len
+            if nx * px + ny * py < 0:
+                nx, ny = -nx, -ny
+            dist = 1e-8
+        else:
+            dist = math.sqrt(dist_sq)
+            nx = dx / dist
+            ny = dy / dist
+
+        overlap = min_dist - dist
+        inv_m_n = 1.0 / node.mass
+        inv_m1 = 0.0 if getattr(ep1, 'is_static', False) else 1.0 / ep1.mass
+        inv_m2 = 0.0 if getattr(ep2, 'is_static', False) else 1.0 / ep2.mass
+        lever1 = (1.0 - t) * inv_m1
+        lever2 = t * inv_m2
+        sum_inv_pos = inv_m_n + lever1 + lever2
+        sum_inv_imp = inv_m_n + (1.0 - t) ** 2 * inv_m1 + t ** 2 * inv_m2
+        if sum_inv_pos == 0.0:
+            return
+
+        node.location[0] += nx * overlap * inv_m_n / sum_inv_pos
+        node.location[1] += ny * overlap * inv_m_n / sum_inv_pos
+        if inv_m1 > 0.0:
+            ep1.location[0] -= nx * overlap * lever1 / sum_inv_pos
+            ep1.location[1] -= ny * overlap * lever1 / sum_inv_pos
+        if inv_m2 > 0.0:
+            ep2.location[0] -= nx * overlap * lever2 / sum_inv_pos
+            ep2.location[1] -= ny * overlap * lever2 / sum_inv_pos
+
+        tx = -ny
+        ty = nx
+
+        v_node_n = node.velocity[0] * nx + node.velocity[1] * ny
+        v_node_t = node.velocity[0] * tx + node.velocity[1] * ty
+        v1n = ep1.velocity[0] * nx + ep1.velocity[1] * ny
+        v1t = ep1.velocity[0] * tx + ep1.velocity[1] * ty
+        v2n = ep2.velocity[0] * nx + ep2.velocity[1] * ny
+        v2t = ep2.velocity[0] * tx + ep2.velocity[1] * ty
+        v_beam_n = (1.0 - t) * v1n + t * v2n
+        v_beam_t = (1.0 - t) * v1t + t * v2t
+
+        rel_vn = v_node_n - v_beam_n
+        if rel_vn < 0:
+            re = (node.restitution + ep1.restitution + ep2.restitution) / 3.0
+            Jn = -(1.0 + re) * rel_vn / sum_inv_imp
+            v_node_n_new = v_node_n + Jn * inv_m_n
+            v1n_new = v1n - Jn * (1.0 - t) * inv_m1 if inv_m1 > 0 else v1n
+            v2n_new = v2n - Jn * t * inv_m2 if inv_m2 > 0 else v2n
+            P_n = node.mass * abs(rel_vn) * (1.0 + re)
+        else:
+            Jn = 0.0
+            v_node_n_new = v_node_n
+            v1n_new = v1n
+            v2n_new = v2n
+            P_n = node.mass * self.g * dt
+
+        mu_s = (node.friction + ep1.friction + ep2.friction) / 3.0
+        mu_k = mu_s * 0.75
+        v_rel_t = (v_node_t - node.angular_velocity * node.radius) - v_beam_t
+        J_t_ideal = -node.mass * v_rel_t / 3.5
+
+        max_static = mu_s * P_n
+        if abs(J_t_ideal) <= max_static:
+            Jt = J_t_ideal
+        else:
+            Jt = math.copysign(mu_k * P_n, J_t_ideal)
+
+        inv_I_n = 0.0 if getattr(node, 'is_static', False) else 1.0 / node.I
+        v_node_t_new = v_node_t + Jt * inv_m_n
+        v1t_new = v1t - Jt * (1.0 - t) * inv_m1 if inv_m1 > 0 else v1t
+        v2t_new = v2t - Jt * t * inv_m2 if inv_m2 > 0 else v2t
+
+        node.velocity[0] = v_node_n_new * nx + v_node_t_new * tx
+        node.velocity[1] = v_node_n_new * ny + v_node_t_new * ty
+        node.angular_velocity -= (Jt * node.radius) * inv_I_n
+        if inv_m1 > 0:
+            ep1.velocity[0] = v1n_new * nx + v1t_new * tx
+            ep1.velocity[1] = v1n_new * ny + v1t_new * ty
+        if inv_m2 > 0:
+            ep2.velocity[0] = v2n_new * nx + v2t_new * tx
+            ep2.velocity[1] = v2n_new * ny + v2t_new * ty
 
     def resolve_ball_collisions(self):
         """
@@ -220,6 +356,63 @@ class PhysicSimulation:
                             obj1.velocity[1] = v1n_new * ny + v1t_new * ty
                             obj2.velocity[0] = v2n_new * nx + v2t_new * tx
                             obj2.velocity[1] = v2n_new * ny + v2t_new * ty
+
+    def resolve_node_beam_collisions(self, dt: float):
+        """
+        Столкновения узлов с балками, у которых включена коллизия.
+        Broad-phase: spatial hash по AABB отрезка балки.
+        """
+        collision_springs = self.get_collision_springs()
+        if not collision_springs or not self.objects:
+            return
+
+        max_radius = max((obj.radius for obj in self.objects), default=1.0)
+        cell_size = max_radius * 2.1
+        if cell_size <= 0:
+            return
+
+        grid = self._build_object_spatial_grid(self.objects, cell_size)
+        if not grid:
+            return
+
+        for spring in collision_springs:
+            ep1, ep2 = spring.obj1, spring.obj2
+            x1, y1 = ep1.location[0], ep1.location[1]
+            x2, y2 = ep2.location[0], ep2.location[1]
+            beam_r = spring.collision_radius
+            pad = beam_r + max_radius
+
+            min_x = min(x1, x2) - pad
+            max_x = max(x1, x2) + pad
+            min_y = min(y1, y2) - pad
+            max_y = max(y1, y2) + pad
+
+            gx_min = int(min_x / cell_size)
+            gx_max = int(max_x / cell_size)
+            gy_min = int(min_y / cell_size)
+            gy_max = int(max_y / cell_size)
+
+            seg_dx = x2 - x1
+            seg_dy = y2 - y1
+            l2 = seg_dx * seg_dx + seg_dy * seg_dy
+            if l2 == 0:
+                continue
+            seg_len = math.sqrt(l2)
+
+            candidates = set()
+            for gx in range(gx_min, gx_max + 1):
+                for gy in range(gy_min, gy_max + 1):
+                    cell = grid.get((gx, gy))
+                    if not cell:
+                        continue
+                    for node in cell:
+                        if node is not ep1 and node is not ep2:
+                            candidates.add(node)
+
+            for node in candidates:
+                self._apply_node_beam_collision(
+                    node, ep1, ep2, x1, y1, seg_dx, seg_dy, l2, seg_len, beam_r, dt,
+                )
 
     def resolve_collisions(self, obj: Object):
         """
@@ -400,7 +593,10 @@ class PhysicSimulation:
             # self.apply_ground_effect(spring) # Вычисление граунд-эффекта
 
         # Очистка физического мира от разорванных связей
-        self.springs = [s for s in self.springs if not s.is_broken]
+        surviving_springs = [s for s in self.springs if not s.is_broken]
+        if len(surviving_springs) != len(self.springs):
+            self.invalidate_collision_springs_cache()
+        self.springs = surviving_springs
 
         for obj in self.objects:
             if obj.is_static:  # Пропуск замороженных объектов
@@ -470,11 +666,15 @@ class PhysicSimulation:
             obj.on_ground = False
 
         # Структурированная обработка столкновений
-        # Приоритетное вычисление столкновений шаров между собой
         self.resolve_ball_collisions()
 
-        # Обработка столкновений со стенами
-        # Это гарантирует, что если один шар вытолкнет другой наружу, стена вернет его обратно на экран
+        # Мир до node-beam: пол задаёт on_ground, колёса на земле не цепляются за свои балки
+        for obj in self.objects:
+            self.resolve_collisions(obj)
+
+        self.resolve_node_beam_collisions(dt)
+
+        # Повтор: вернуть объекты в границы после ball/node-beam
         for obj in self.objects:
             self.resolve_collisions(obj)
 

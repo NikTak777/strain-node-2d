@@ -287,16 +287,26 @@ class InputHandler:
                     filepath = filedialog.askopenfilename(filetypes=[("JSON Files", "*.json")])
                     root.destroy()
                     if filepath:
-                        app.selected_obj = None
-                        app.dragged_obj = None
-                        app.selected_nodes.clear()
-                        app.selected_springs.clear()
+                        app.last_scene = filepath
+                        app._clear_scene_editor_state()
                         load_scene(app.sim, filepath)
                         app.focus_on_loaded_scene()
 
+                elif event.key == pygame.K_r:
+                    app.reload_last_scene()
+
+                elif event.key == pygame.K_INSERT:
+                    app.save_quick_checkpoint()
+
+                elif event.key == pygame.K_HOME:
+                    app.restore_quick_checkpoint()
+
+                elif event.key == pygame.K_q:
+                    app.inspector.toggle_enabled()
+
                 elif event.key == pygame.K_e:
                     target = app.inspector.get_inspection_target(app)
-                    if target is not None:
+                    if target is not None and app.inspector.enabled:
                         app.inspector.open_edit_mode(target)
 
                 elif event.key == pygame.K_DELETE:
@@ -308,6 +318,7 @@ class InputHandler:
                         if node in app.sim.objects:
                             app.sim.objects.remove(node)
 
+                    app.sim.invalidate_collision_springs_cache()
                     app.selected_nodes.clear()
                     app.selected_springs.clear()
 

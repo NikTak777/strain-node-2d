@@ -29,6 +29,7 @@ from strainnode2d.physics.simulation import PhysicSimulation
 from strainnode2d.ui.inspector import InspectorHUD
 from strainnode2d.core.input_handler import InputHandler
 from strainnode2d.core.camera import Camera
+from strainnode2d.physics.serializer import snapshot_scene, restore_scene, load_scene
 
 FPS = 1000
 WORLD_WIDTH, WORLD_HEIGHT = 1000.0, 80.0
@@ -66,6 +67,8 @@ class SimulationApp:
         self.dragged_obj = None
         self.drag_offset = [0.0, 0.0]
         self.clipboard = None  # Буфер обмена
+        self.last_scene = None
+        self.quick_save_snapshot = None
 
         self.selected_nodes = []  # Список выделенных узлов
         self.selected_springs = []  # Список выделенных балок
@@ -127,6 +130,36 @@ class SimulationApp:
         cx = sum(obj.location[0] for obj in objects) * inv_n
         cy = sum(obj.location[1] for obj in objects) * inv_n
         self.camera.pan_to(cx, cy)
+
+    def _clear_scene_editor_state(self):
+        self.dragged_obj = None
+        self.selected_nodes.clear()
+        self.selected_springs.clear()
+        self.camera.clear_follow()
+
+    def reload_last_scene(self):
+        """Перезагружает последнюю сцену, открытую через F9."""
+        if not self.last_scene:
+            print("Нет сцены для перезагрузки — сначала загрузите файл через F9")
+            return
+        self._clear_scene_editor_state()
+        load_scene(self.sim, self.last_scene)
+        self.focus_on_loaded_scene()
+        print(f"Сцена перезагружена: {self.last_scene}")
+
+    def save_quick_checkpoint(self):
+        """Быстрая точка в памяти (позиции, скорости, состояние конструкции)."""
+        self.quick_save_snapshot = snapshot_scene(self.sim)
+        print("Быстрая точка сохранена (Home — восстановить)")
+
+    def restore_quick_checkpoint(self):
+        """Восстанавливает последнюю быструю точку (Insert)."""
+        if self.quick_save_snapshot is None:
+            print("Нет быстрой точки — нажмите Insert перед восстановлением")
+            return
+        self._clear_scene_editor_state()
+        restore_scene(self.sim, self.quick_save_snapshot)
+        print("Быстрая точка восстановлена")
 
     def _draw_aero_debug(self):
         """Отрисовка отладочных данных по аэродинамике."""
@@ -433,10 +466,9 @@ class SimulationApp:
 
         self._draw_aero_debug()
 
-        if len(self.selected_springs) == 1:
-            self.inspector.draw(self.screen, self.selected_springs[0], self.scale, self.camera, self.width, self.height)
-        elif len(self.selected_nodes) == 1:
-            self.inspector.draw(self.screen, self.selected_nodes[0], self.scale, self.camera, self.width, self.height)
+        if self.inspector.is_visible(self):
+            target = self.inspector.get_inspection_target(self)
+            self.inspector.draw(self.screen, target, self.scale, self.camera, self.width, self.height)
         else:
             self.inspector.close_edit_mode()
             self.inspector.close_type_picker()
