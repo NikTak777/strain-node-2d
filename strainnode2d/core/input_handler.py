@@ -301,9 +301,12 @@ class InputHandler:
                 elif event.key == pygame.K_HOME:
                     app.restore_quick_checkpoint()
 
+                elif event.key == pygame.K_q:
+                    app.inspector.toggle_enabled()
+
                 elif event.key == pygame.K_e:
                     target = app.inspector.get_inspection_target(app)
-                    if target is not None:
+                    if target is not None and app.inspector.enabled:
                         app.inspector.open_edit_mode(target)
 
                 elif event.key == pygame.K_DELETE:

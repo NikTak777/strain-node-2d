@@ -76,6 +76,7 @@ class InspectorHUD:
         self.border_color = (100, 150, 255, 255)
         self.header_color = (35, 35, 45, 230)
 
+        self.enabled = False
         self.pinned = True
         self.screen_x = 20
         self.screen_y = 20
@@ -127,7 +128,13 @@ class InspectorHUD:
         return None
 
     def is_visible(self, app) -> bool:
-        return self.get_inspection_target(app) is not None
+        return self.enabled and self.get_inspection_target(app) is not None
+
+    def toggle_enabled(self):
+        self.enabled = not self.enabled
+        if not self.enabled:
+            self.close_edit_mode()
+            self.close_type_picker()
 
     def _get_active_type_options(self) -> list[tuple[str, str]]:
         if self._picker_kind == "node":

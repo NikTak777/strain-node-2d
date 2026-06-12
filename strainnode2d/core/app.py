@@ -32,7 +32,7 @@ from strainnode2d.core.camera import Camera
 from strainnode2d.physics.serializer import snapshot_scene, restore_scene, load_scene
 
 FPS = 1000
-WORLD_WIDTH, WORLD_HEIGHT = 1000.0, 80.0
+WORLD_WIDTH, WORLD_HEIGHT = 3000.0, 80.0
 SCALE = 10.0
 WIDTH, HEIGHT = 1920, 1080
 
@@ -466,10 +466,9 @@ class SimulationApp:
 
         self._draw_aero_debug()
 
-        if len(self.selected_springs) == 1:
-            self.inspector.draw(self.screen, self.selected_springs[0], self.scale, self.camera, self.width, self.height)
-        elif len(self.selected_nodes) == 1:
-            self.inspector.draw(self.screen, self.selected_nodes[0], self.scale, self.camera, self.width, self.height)
+        if self.inspector.is_visible(self):
+            target = self.inspector.get_inspection_target(self)
+            self.inspector.draw(self.screen, target, self.scale, self.camera, self.width, self.height)
         else:
             self.inspector.close_edit_mode()
             self.inspector.close_type_picker()
