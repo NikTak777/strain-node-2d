@@ -19,23 +19,55 @@
 import pygame
 import math
 from typing import Union, Optional
-from strainnode2d.physics.objects import Object, MotorWheel
-from strainnode2d.physics.springs import Spring, Rope, Hydraulic, Beam, AeroBeam
+from strainnode2d.physics.objects import Object, MotorWheel, StructuralNode
+from strainnode2d.physics.springs import Spring
+from strainnode2d.core.entity_conversion import (
+    convert_object_type, convert_spring_type, replace_object_in_simulation,
+)
 from strainnode2d.core.camera import Camera
 
 
 class InspectorHUD:
-    SPRING_FIELDS = [
+    SPRING_TYPE_OPTIONS = [
+        ("1  Spring — пружина", "Spring"),
+        ("2  Rope — трос", "Rope"),
+        ("3  Hydraulic — гидравлика", "Hydraulic"),
+        ("4  Beam — жёсткая балка", "Beam"),
+        ("5  AeroBeam — аэробалка", "AeroBeam"),
+    ]
+    NODE_TYPE_OPTIONS = [
+        ("1  Object — узел", "Object"),
+        ("2  MotorWheel — колесо", "MotorWheel"),
+        ("3  StructuralNode — каркас", "StructuralNode"),
+    ]
+
+    SPRING_COMMON_FIELDS = [
         ("Жесткость (k):", "k"),
         ("Демпфер (d):", "d"),
         ("Предел текучести:", "yield_limit"),
+        ("Предел разрыва:", "break_limit"),
         ("Длина покоя (м):", "rest_length"),
+    ]
+    HYDRAULIC_FIELDS = [
+        ("Скорость (м/с):", "speed"),
+        ("Мин. длина:", "min_length"),
+        ("Макс. длина:", "max_length"),
+    ]
+    AERO_FIELDS = [
+        ("Хорда (м):", "chord"),
+        ("Подъём (Cl):", "lift_coef"),
+        ("Баз. сопр.:", "base_drag"),
+        ("Инд. сопр.:", "induced_drag"),
     ]
     OBJECT_FIELDS = [
         ("Радиус (м):", "radius"),
         ("Плотность:", "density"),
         ("Упругость:", "restitution"),
         ("Трение:", "friction"),
+    ]
+    MOTOR_FIELDS = [
+        ("Мощность:", "power"),
+        ("Макс. скорость:", "max_speed"),
     ]
 
     def __init__(self):
@@ -63,10 +95,15 @@ class InspectorHUD:
         self.field_rects = {}
 
         self.edit_mode = False
+        self.type_picker_mode = False
         self._edit_target = None
         self.draft = {}
         self.active_field = None
         self.error_message = None
+        self.picked_type = "Spring"
+        self.type_option_rects = {}
+        self._picker_kind = None
+        self._type_picker_target = None
 
         self.header_height = 35
         self.padding = 12
@@ -76,6 +113,10 @@ class InspectorHUD:
     @property
     def is_editing(self) -> bool:
         return self.edit_mode
+
+    @property
+    def blocks_input(self) -> bool:
+        return self.edit_mode or self.type_picker_mode
 
     @staticmethod
     def get_inspection_target(app) -> Optional[Union[Object, Spring]]:
@@ -88,15 +129,33 @@ class InspectorHUD:
     def is_visible(self, app) -> bool:
         return self.get_inspection_target(app) is not None
 
-    def _get_fields(self, target: Union[Object, Spring]) -> list[tuple[str, str]]:
-        if isinstance(target, Spring):
-            return list(self.SPRING_FIELDS)
-        fields = list(self.OBJECT_FIELDS)
-        if isinstance(target, MotorWheel):
-            fields.append(("Мощность:", "power"))
+    def _get_active_type_options(self) -> list[tuple[str, str]]:
+        if self._picker_kind == "node":
+            return self.NODE_TYPE_OPTIONS
+        return self.SPRING_TYPE_OPTIONS
+
+    def _get_spring_fields(self, target: Spring) -> list[tuple[str, str]]:
+        fields = list(self.SPRING_COMMON_FIELDS)
+        type_name = target.__class__.__name__
+        if type_name == "Hydraulic":
+            fields.extend(self.HYDRAULIC_FIELDS)
+        elif type_name == "AeroBeam":
+            fields.extend(self.AERO_FIELDS)
         return fields
 
+    def _get_object_fields(self, target: Object) -> list[tuple[str, str]]:
+        fields = list(self.OBJECT_FIELDS)
+        if isinstance(target, MotorWheel):
+            fields.extend(self.MOTOR_FIELDS)
+        return fields
+
+    def _get_fields(self, target: Union[Object, Spring]) -> list[tuple[str, str]]:
+        if isinstance(target, Spring):
+            return self._get_spring_fields(target)
+        return self._get_object_fields(target)
+
     def open_edit_mode(self, target: Union[Object, Spring]):
+        self.close_type_picker()
         self.edit_mode = True
         self._edit_target = target
         self.active_field = None
@@ -111,6 +170,47 @@ class InspectorHUD:
         self.error_message = None
         self.field_rects = {}
 
+    def open_type_picker(self, target: Union[Object, Spring]):
+        self.close_edit_mode()
+        self.type_picker_mode = True
+        self.picked_type = target.__class__.__name__
+        self.type_option_rects = {}
+        self._picker_kind = "spring" if isinstance(target, Spring) else "node"
+        self._type_picker_target = target
+
+    def close_type_picker(self):
+        self.type_picker_mode = False
+        self.type_option_rects = {}
+        self._picker_kind = None
+        self._type_picker_target = None
+
+    def apply_spring_type_change(self, app, source: Spring, new_type: str) -> bool:
+        new_link = convert_spring_type(source, new_type)
+        if new_link is None:
+            return False
+        if source in app.sim.springs:
+            app.sim.springs.remove(source)
+        app.sim.add_spring(new_link)
+        app.selected_springs = [new_link]
+        self.close_type_picker()
+        return True
+
+    def apply_object_type_change(self, app, source: Object, new_type: str) -> bool:
+        new_obj = convert_object_type(source, new_type)
+        if new_obj is None:
+            return False
+        replace_object_in_simulation(app.sim, source, new_obj)
+        if app.camera.target is source:
+            app.camera.target = new_obj
+        app.selected_nodes = [new_obj]
+        self.close_type_picker()
+        return True
+
+    def _apply_type_change(self, app, target: Union[Object, Spring]) -> bool:
+        if isinstance(target, Spring):
+            return self.apply_spring_type_change(app, target, self.picked_type)
+        return self.apply_object_type_change(app, target, self.picked_type)
+
     def toggle_pin(self):
         if self.pinned:
             self.screen_x = self.last_hud_x
@@ -119,7 +219,13 @@ class InspectorHUD:
         self.is_dragging = False
 
     def handle_keydown(self, event: pygame.event.Event, app) -> bool:
-        if not self.edit_mode or not self.is_visible(app):
+        if not self.is_visible(app):
+            return False
+
+        if self.type_picker_mode:
+            return self._handle_type_picker_keydown(event, app)
+
+        if not self.edit_mode:
             return False
 
         if event.key == pygame.K_ESCAPE:
@@ -151,6 +257,25 @@ class InspectorHUD:
 
         return True
 
+    def _handle_type_picker_keydown(self, event: pygame.event.Event, app) -> bool:
+        if event.key == pygame.K_ESCAPE:
+            self.close_type_picker()
+            return True
+        if event.key in (pygame.K_RETURN, pygame.K_KP_ENTER):
+            target = self.get_inspection_target(app)
+            if target is not None:
+                self._apply_type_change(app, target)
+            return True
+        key_index = {
+            pygame.K_1: 0, pygame.K_2: 1, pygame.K_3: 2,
+            pygame.K_4: 3, pygame.K_5: 4,
+        }
+        options = self._get_active_type_options()
+        if event.key in key_index and key_index[event.key] < len(options):
+            self.picked_type = options[key_index[event.key]][1]
+            return True
+        return True
+
     def handle_textinput(self, text: str, app) -> bool:
         if not self.edit_mode or not self.is_visible(app) or not self.active_field:
             return False
@@ -176,6 +301,24 @@ class InspectorHUD:
             return True
 
         target = self.get_inspection_target(app)
+
+        if self.type_picker_mode:
+            for type_name, rect in self.type_option_rects.items():
+                if rect.collidepoint(mx, my):
+                    self.picked_type = type_name
+                    return True
+            if self.save_btn_rect and self.save_btn_rect.collidepoint(mx, my):
+                self._apply_type_change(app, target)
+                return True
+            if self.cancel_btn_rect and self.cancel_btn_rect.collidepoint(mx, my):
+                self.close_type_picker()
+                return True
+            if self.panel_rect.collidepoint(mx, my):
+                if not self.pinned and self.title_rect and self.title_rect.collidepoint(mx, my):
+                    self.is_dragging = True
+                    self.drag_offset = (mx - self.screen_x, my - self.screen_y)
+                return True
+            return False
 
         if self.edit_mode:
             if self.save_btn_rect and self.save_btn_rect.collidepoint(mx, my):
@@ -206,9 +349,9 @@ class InspectorHUD:
                     target.normal_flip *= -1
                 return True
 
-            if self.change_btn_rect and self.change_btn_rect.collidepoint(mx, my):
-                self._change_spring_type(app, target)
-                return True
+        if self.change_btn_rect and self.change_btn_rect.collidepoint(mx, my):
+            self.open_type_picker(target)
+            return True
 
         if self.panel_rect.collidepoint(mx, my):
             if not self.pinned and self.title_rect and self.title_rect.collidepoint(mx, my):
@@ -248,47 +391,35 @@ class InspectorHUD:
             target.density = values["density"]
             target.restitution = values["restitution"]
             target.friction = values["friction"]
-            if isinstance(target, MotorWheel) and "power" in values:
+            if isinstance(target, MotorWheel):
                 target.power = values["power"]
+                target.max_speed = values["max_speed"]
             volume = (4.0 / 3.0) * math.pi * (target.radius ** 3)
             target.mass = target.density * volume
-            target.I = 0.4 * target.mass * (target.radius ** 2)
+            if isinstance(target, StructuralNode):
+                target.I = float("inf")
+                target.angular_velocity = 0.0
+            else:
+                target.I = 0.4 * target.mass * (target.radius ** 2)
             target.surface = None
         elif isinstance(target, Spring):
             target.k = values["k"]
             target.d = values["d"]
             target.yield_limit = values["yield_limit"]
+            target.break_limit = values["break_limit"]
             target.rest_length = values["rest_length"]
+            type_name = target.__class__.__name__
+            if type_name == "Hydraulic":
+                target.speed = values["speed"]
+                target.min_length = values["min_length"]
+                target.max_length = values["max_length"]
+            elif type_name == "AeroBeam":
+                target.chord = values["chord"]
+                target.lift_coef = values["lift_coef"]
+                target.base_drag = values["base_drag"]
+                target.induced_drag = values["induced_drag"]
 
         self.close_edit_mode()
-
-    def _change_spring_type(self, app, target_spring: Spring):
-        from strainnode2d.ui.dialogs import show_type_dialog
-
-        obj1, obj2 = target_spring.obj1, target_spring.obj2
-        new_type = show_type_dialog(target_spring.__class__.__name__)
-
-        if not new_type or new_type == target_spring.__class__.__name__:
-            return
-
-        if target_spring in app.sim.springs:
-            app.sim.springs.remove(target_spring)
-
-        new_link = None
-        if new_type == "Spring":
-            new_link = Spring(obj1, obj2, k=20000.0, d=160.0)
-        elif new_type == "Rope":
-            new_link = Rope(obj1, obj2, k=150000.0, d=500.0)
-        elif new_type == "Hydraulic":
-            new_link = Hydraulic(obj1, obj2, speed=2.0, min_length=0.5, max_length=10.0)
-        elif new_type == "Beam":
-            new_link = Beam(obj1, obj2)
-        elif new_type == "AeroBeam":
-            new_link = AeroBeam(obj1, obj2, lift_coef=2.5, chord=2.0)
-
-        if new_link:
-            app.sim.add_spring(new_link)
-            app.selected_springs = [new_link]
 
     @staticmethod
     def _clamp_position(hud_x: float, hud_y: float, bg_width: int, bg_height: int,
@@ -322,7 +453,11 @@ class InspectorHUD:
         return self._clamp_position(hud_x, hud_y, bg_width, bg_height, screen_width, screen_height)
 
     @staticmethod
-    def _get_header_label(target: Union[Object, Spring], pinned: bool, editing: bool) -> str:
+    def _get_header_label(target: Union[Object, Spring], pinned: bool,
+                          editing: bool, type_picking: bool) -> str:
+        if type_picking:
+            kind = "узла" if isinstance(target, Object) else "балки"
+            return f"Тип {kind}"
         kind = "узла" if isinstance(target, Object) else "балки"
         if editing:
             return f"Редактирование {kind}"
@@ -339,10 +474,13 @@ class InspectorHUD:
         pin_y = hud_y + (self.header_height - pin_size) // 2
         self.pin_btn_rect = pygame.Rect(pin_x, pin_y, pin_size, pin_size)
 
-        label = self._get_header_label(target, self.pinned, self.edit_mode)
-        label_color = (255, 200, 120) if self.edit_mode else (
-            (190, 210, 255) if self.pinned else (255, 215, 140)
-        )
+        label = self._get_header_label(target, self.pinned, self.edit_mode, self.type_picker_mode)
+        if self.type_picker_mode:
+            label_color = (255, 200, 120)
+        elif self.edit_mode:
+            label_color = (255, 200, 120)
+        else:
+            label_color = (190, 210, 255) if self.pinned else (255, 215, 140)
         label_surf = self.font.render(label, True, label_color)
         screen.blit(label_surf, (hud_x + self.padding, hud_y + (self.header_height - label_surf.get_height()) // 2))
 
@@ -361,6 +499,14 @@ class InspectorHUD:
                             rect.centery - label.get_height() // 2))
 
     def _measure_content(self, target: Union[Object, Spring]) -> tuple[int, int]:
+        if self.type_picker_mode:
+            options = self._get_active_type_options()
+            option_width = max(self.font.size(label)[0] for label, _ in options)
+            content_width = option_width + self.padding * 2 + 24
+            row_h = self.field_height + 4
+            content_height = self.padding * 2 + len(options) * row_h + self.btn_height + 14
+            return content_width, content_height
+
         if self.edit_mode:
             fields = self._get_fields(target)
             label_width = max(self.font.size(label)[0] for label, _ in fields)
@@ -379,10 +525,9 @@ class InspectorHUD:
         max_width = max(surf.get_width() for surf in rendered)
         total_height = sum(surf.get_height() for surf in rendered) + (len(lines) - 1) * 2
         content_height = total_height + self.padding * 2 + self.btn_height + 10
-        if isinstance(target, Spring):
+        content_height += self.btn_height + 5
+        if isinstance(target, Spring) and target.__class__.__name__ == "AeroBeam":
             content_height += self.btn_height + 5
-            if target.__class__.__name__ == "AeroBeam":
-                content_height += self.btn_height + 5
         return max_width + self.padding * 2, content_height
 
     def _build_view_lines(self, target: Union[Object, Spring]) -> list[str]:
@@ -404,16 +549,35 @@ class InspectorHUD:
             if isinstance(target, MotorWheel):
                 lines.append(f"Мотор:           {'Вкл' if target.direction != 0 else 'Выкл'}")
                 lines.append(f"Мощность:        {target.power:.2f}")
+                lines.append(f"Макс. скорость:  {target.max_speed:.2f} рад/с")
+            if isinstance(target, StructuralNode):
+                lines.append("Инерция:         бесконечная")
         elif isinstance(target, Spring):
             strain_pct = (target.current_strain / target.yield_limit) * 100 if target.yield_limit else 0
+            type_name = target.__class__.__name__
             lines.extend([
-                f"--- {target.__class__.__name__} ---",
+                f"--- {type_name} ---",
                 f"Жесткость: {target.k:.0f}",
                 f"Демпфер:   {target.d:.0f}",
                 f"Натяжение: {target.current_strain:.2f} м",
                 f"Нагрузка:  {abs(strain_pct):.1f}%",
-                f"Предел:    {target.yield_limit:.2f} м",
+                f"Текучесть: {target.yield_limit:.2f}",
+                f"Разрыв:    {target.break_limit:.2f}",
             ])
+            if type_name == "Hydraulic":
+                lines.extend([
+                    f"Скорость:  {target.speed:.2f} м/с",
+                    f"Ход:       {target.min_length:.2f} — {target.max_length:.2f} м",
+                ])
+            elif type_name == "AeroBeam":
+                flip = getattr(target, "normal_flip", 1)
+                lines.extend([
+                    f"Хорда:     {target.chord:.2f} м",
+                    f"Подъём Cl: {target.lift_coef:.2f}",
+                    f"Сопр. баз: {target.base_drag:.3f}",
+                    f"Сопр. инд:{target.induced_drag:.2f}",
+                    f"Нормаль:   {'вверх' if flip > 0 else 'вниз'}",
+                ])
         return lines
 
     def _draw_edit_form(self, screen, hud_x: int, hud_y: int, bg_width: int,
@@ -461,6 +625,44 @@ class InspectorHUD:
         self._draw_button(screen, self.cancel_btn_rect, "Отмена", (140, 70, 70))
         return curr_y + self.btn_height
 
+    def _draw_type_picker(self, screen, hud_x: int, hud_y: int, bg_width: int,
+                          target: Union[Object, Spring]) -> int:
+        self.type_option_rects = {}
+        self.save_btn_rect = None
+        self.cancel_btn_rect = None
+
+        curr_y = hud_y + self.header_height + self.padding
+        row_h = self.field_height + 4
+        current_type = target.__class__.__name__
+
+        for label_text, type_name in self._get_active_type_options():
+            row_rect = pygame.Rect(hud_x + self.padding, curr_y, bg_width - self.padding * 2, self.field_height)
+            is_selected = self.picked_type == type_name
+            is_current = current_type == type_name
+
+            bg = (55, 75, 110) if is_selected else (35, 38, 50)
+            border = (255, 215, 80) if is_selected else (70, 80, 100)
+            pygame.draw.rect(screen, bg, row_rect, border_radius=4)
+            pygame.draw.rect(screen, border, row_rect, width=1, border_radius=4)
+
+            marker = "● " if is_selected else "○ "
+            suffix = " (текущий)" if is_current else ""
+            text_surf = self.font.render(marker + label_text + suffix, True, (235, 235, 245))
+            screen.blit(text_surf, (row_rect.x + 6, row_rect.centery - text_surf.get_height() // 2))
+            self.type_option_rects[type_name] = row_rect
+            curr_y += row_h
+
+        curr_y += 6
+        btn_gap = 8
+        btn_width = (bg_width - self.padding * 2 - btn_gap) // 2
+        self.save_btn_rect = pygame.Rect(hud_x + self.padding, curr_y, btn_width, self.btn_height)
+        self.cancel_btn_rect = pygame.Rect(
+            hud_x + self.padding + btn_width + btn_gap, curr_y, btn_width, self.btn_height
+        )
+        self._draw_button(screen, self.save_btn_rect, "Применить", (60, 140, 80))
+        self._draw_button(screen, self.cancel_btn_rect, "Отмена", (140, 70, 70))
+        return curr_y + self.btn_height
+
     def _draw_view_content(self, screen, hud_x: int, hud_y: int, bg_width: int,
                            target: Union[Object, Spring]) -> int:
         self.edit_btn_rect = None
@@ -481,17 +683,16 @@ class InspectorHUD:
         self.edit_btn_rect = btn_rect
         curr_y += self.btn_height + 5
 
-        if isinstance(target, Spring):
-            btn_rect = pygame.Rect(hud_x + self.padding, curr_y, bg_width - self.padding * 2, self.btn_height)
-            self._draw_button(screen, btn_rect, "Изменить тип", (70, 100, 200))
-            self.change_btn_rect = btn_rect
-            curr_y += self.btn_height + 5
+        btn_rect = pygame.Rect(hud_x + self.padding, curr_y, bg_width - self.padding * 2, self.btn_height)
+        self._draw_button(screen, btn_rect, "Изменить тип", (70, 100, 200))
+        self.change_btn_rect = btn_rect
+        curr_y += self.btn_height + 5
 
-            if target.__class__.__name__ == "AeroBeam":
-                flip_rect = pygame.Rect(hud_x + self.padding, curr_y, bg_width - self.padding * 2, self.btn_height)
-                self._draw_button(screen, flip_rect, "Повернуть нормаль", (200, 100, 70))
-                self.flip_btn_rect = flip_rect
-                curr_y += self.btn_height + 5
+        if isinstance(target, Spring) and target.__class__.__name__ == "AeroBeam":
+            flip_rect = pygame.Rect(hud_x + self.padding, curr_y, bg_width - self.padding * 2, self.btn_height)
+            self._draw_button(screen, flip_rect, "Повернуть нормаль", (200, 100, 70))
+            self.flip_btn_rect = flip_rect
+            curr_y += self.btn_height + 5
 
         return curr_y
 
@@ -499,10 +700,13 @@ class InspectorHUD:
              camera: Camera, screen_width: int, screen_height: int) -> None:
         if self.edit_mode and self._edit_target is not target:
             self.close_edit_mode()
+        if self.type_picker_mode and target is not self._type_picker_target:
+            self.close_type_picker()
 
         pin_size = 16
         header_label_surf = self.font.render(
-            self._get_header_label(target, self.pinned, self.edit_mode), True, (255, 255, 255)
+            self._get_header_label(target, self.pinned, self.edit_mode, self.type_picker_mode),
+            True, (255, 255, 255),
         )
         min_header_width = header_label_surf.get_width() + self.padding * 2 + pin_size + 8
         content_width, content_height = self._measure_content(target)
@@ -531,7 +735,9 @@ class InspectorHUD:
 
         self._draw_header(screen, hud_x, hud_y, bg_width, target)
 
-        if self.edit_mode:
+        if self.type_picker_mode:
+            self._draw_type_picker(screen, hud_x, hud_y, bg_width, target)
+        elif self.edit_mode:
             self._draw_edit_form(screen, hud_x, hud_y, bg_width, target)
         else:
             self._draw_view_content(screen, hud_x, hud_y, bg_width, target)

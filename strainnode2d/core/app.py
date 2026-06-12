@@ -31,7 +31,7 @@ from strainnode2d.core.input_handler import InputHandler
 from strainnode2d.core.camera import Camera
 
 FPS = 1000
-WORLD_WIDTH, WORLD_HEIGHT = 200.0, 80.0
+WORLD_WIDTH, WORLD_HEIGHT = 1000.0, 80.0
 SCALE = 10.0
 WIDTH, HEIGHT = 1920, 1080
 
@@ -439,6 +439,7 @@ class SimulationApp:
             self.inspector.draw(self.screen, self.selected_nodes[0], self.scale, self.camera, self.width, self.height)
         else:
             self.inspector.close_edit_mode()
+            self.inspector.close_type_picker()
 
         pygame.display.flip()
 

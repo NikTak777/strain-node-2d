@@ -22,7 +22,8 @@ import math
 import tkinter as tk
 from tkinter import filedialog
 from strainnode2d.physics.objects import Object, MotorWheel
-from strainnode2d.physics.springs import Spring, Rope, Hydraulic, Beam, AeroBeam
+from strainnode2d.physics.springs import Spring, Hydraulic
+from strainnode2d.core.entity_conversion import SPRING_TYPE_NAMES
 from strainnode2d.physics.serializer import save_scene, load_scene
 
 
@@ -219,7 +220,7 @@ class InputHandler:
 
             # Обработка нажатий клавиш на клавиатуре
             elif event.type == pygame.KEYDOWN:
-                if app.inspector.is_editing and app.inspector.handle_keydown(event, app):
+                if app.inspector.blocks_input and app.inspector.handle_keydown(event, app):
                     continue
 
                 # Управление временем
@@ -261,29 +262,14 @@ class InputHandler:
                     for spring in app.sim.springs:
                         if isinstance(spring, Hydraulic): spring.activation = -1
 
-                # Смена типов балок
+                # Смена типов балок (с сохранением параметров)
                 elif event.key in (pygame.K_1, pygame.K_2, pygame.K_3, pygame.K_4, pygame.K_5):
                     if len(app.selected_springs) == 1:
-                        target_spring = app.selected_springs[0]
-                        obj1, obj2 = target_spring.obj1, target_spring.obj2
-                        if target_spring in app.sim.springs:
-                            app.sim.springs.remove(target_spring)
-
-                        new_link = None
-                        if event.key == pygame.K_1:
-                            new_link = Spring(obj1, obj2, k=20000.0, d=160.0)
-                        elif event.key == pygame.K_2:
-                            new_link = Rope(obj1, obj2, k=150000.0, d=500.0)
-                        elif event.key == pygame.K_3:
-                            new_link = Hydraulic(obj1, obj2, speed=2.0, min_length=0.5, max_length=10.0)
-                        elif event.key == pygame.K_4:
-                            new_link = Beam(obj1, obj2)
-                        elif event.key == pygame.K_5:
-                            new_link = AeroBeam(obj1, obj2, lift_coef=2.5)
-
-                        if new_link:
-                            app.sim.add_spring(new_link)
-                            app.selected_springs = [new_link]
+                        idx = event.key - pygame.K_1
+                        if idx < len(SPRING_TYPE_NAMES):
+                            app.inspector.apply_spring_type_change(
+                                app, app.selected_springs[0], SPRING_TYPE_NAMES[idx]
+                            )
 
                 # Сохранение / Загрузка
                 elif event.key == pygame.K_F5:
@@ -437,7 +423,7 @@ class InputHandler:
                             app.selected_springs.append(new_spring)
 
             elif event.type == pygame.KEYUP:
-                if app.inspector.is_editing:
+                if app.inspector.blocks_input:
                     continue
                 if event.key in (pygame.K_a, pygame.K_d):
                     for obj in app.sim.objects:
