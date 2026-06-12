@@ -71,6 +71,9 @@ def snapshot_scene(sim) -> dict:
             spring_data["base_drag"] = spring.base_drag
             spring_data["induced_drag"] = spring.induced_drag
             spring_data["normal_flip"] = getattr(spring, 'normal_flip', 1)
+        if getattr(spring, 'collision_enabled', False):
+            spring_data["collision_enabled"] = True
+            spring_data["collision_radius"] = spring.collision_radius
         data["springs"].append(spring_data)
 
     return data
@@ -152,6 +155,9 @@ def restore_scene(sim, data: dict):
         else:
             # Фолбэк на обычную пружину
             spring = Spring(obj1, obj2, **kwargs)
+
+        spring.collision_enabled = spring_data.get("collision_enabled", False)
+        spring.collision_radius = spring_data.get("collision_radius", 0.08)
 
         sim.add_spring(spring)
 

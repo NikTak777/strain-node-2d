@@ -221,6 +221,126 @@ class PhysicSimulation:
                             obj2.velocity[0] = v2n_new * nx + v2t_new * tx
                             obj2.velocity[1] = v2n_new * ny + v2t_new * ty
 
+    def resolve_node_beam_collisions(self):
+        """
+        Столкновения узлов с балками, у которых включена коллизия.
+        Импульс передаётся на оба конца балки пропорционально положению контакта.
+        """
+        collision_springs = [
+            s for s in self.springs
+            if not s.is_broken and getattr(s, 'collision_enabled', False)
+        ]
+        if not collision_springs:
+            return
+
+        for spring in collision_springs:
+            ep1, ep2 = spring.obj1, spring.obj2
+            x1, y1 = ep1.get_location()
+            x2, y2 = ep2.get_location()
+            beam_r = spring.collision_radius
+
+            seg_dx = x2 - x1
+            seg_dy = y2 - y1
+            l2 = seg_dx ** 2 + seg_dy ** 2
+            if l2 == 0:
+                continue
+            seg_len = math.sqrt(l2)
+
+            for node in self.objects:
+                if node is ep1 or node is ep2:
+                    continue
+                if getattr(node, 'is_static', False):
+                    continue
+
+                px = node.location[0] - x1
+                py = node.location[1] - y1
+                t = max(0.0, min(1.0, (px * seg_dx + py * seg_dy) / l2))
+
+                cx = x1 + t * seg_dx
+                cy = y1 + t * seg_dy
+                dx = node.location[0] - cx
+                dy = node.location[1] - cy
+                dist = math.sqrt(dx * dx + dy * dy)
+                min_dist = node.radius + beam_r
+
+                if dist >= min_dist:
+                    continue
+
+                if dist < 1e-8:
+                    nx = -seg_dy / seg_len
+                    ny = seg_dx / seg_len
+                    if nx * px + ny * py < 0:
+                        nx, ny = -nx, -ny
+                    dist = 1e-8
+                else:
+                    nx = dx / dist
+                    ny = dy / dist
+
+                overlap = min_dist - dist
+                inv_m_n = 1.0 / node.mass
+                inv_m1 = 0.0 if getattr(ep1, 'is_static', False) else 1.0 / ep1.mass
+                inv_m2 = 0.0 if getattr(ep2, 'is_static', False) else 1.0 / ep2.mass
+                lever1 = (1.0 - t) * inv_m1
+                lever2 = t * inv_m2
+                sum_inv_pos = inv_m_n + lever1 + lever2
+                sum_inv_imp = inv_m_n + (1.0 - t) ** 2 * inv_m1 + t ** 2 * inv_m2
+                if sum_inv_pos == 0.0:
+                    continue
+
+                node.location[0] += nx * overlap * inv_m_n / sum_inv_pos
+                node.location[1] += ny * overlap * inv_m_n / sum_inv_pos
+                if inv_m1 > 0.0:
+                    ep1.location[0] -= nx * overlap * lever1 / sum_inv_pos
+                    ep1.location[1] -= ny * overlap * lever1 / sum_inv_pos
+                if inv_m2 > 0.0:
+                    ep2.location[0] -= nx * overlap * lever2 / sum_inv_pos
+                    ep2.location[1] -= ny * overlap * lever2 / sum_inv_pos
+
+                tx = -ny
+                ty = nx
+
+                v_node_n = node.velocity[0] * nx + node.velocity[1] * ny
+                v_node_t = node.velocity[0] * tx + node.velocity[1] * ty
+                v1n = ep1.velocity[0] * nx + ep1.velocity[1] * ny
+                v1t = ep1.velocity[0] * tx + ep1.velocity[1] * ty
+                v2n = ep2.velocity[0] * nx + ep2.velocity[1] * ny
+                v2t = ep2.velocity[0] * tx + ep2.velocity[1] * ty
+                v_beam_n = (1.0 - t) * v1n + t * v2n
+                v_beam_t = (1.0 - t) * v1t + t * v2t
+
+                rel_vn = v_node_n - v_beam_n
+                if rel_vn >= 0:
+                    continue
+
+                re = (node.restitution + ep1.restitution + ep2.restitution) / 3.0
+                Jn = -(1.0 + re) * rel_vn / sum_inv_imp
+
+                v_node_n_new = v_node_n + Jn * inv_m_n
+                v1n_new = v1n - Jn * (1.0 - t) * inv_m1 if inv_m1 > 0 else v1n
+                v2n_new = v2n - Jn * t * inv_m2 if inv_m2 > 0 else v2n
+
+                v_rel_t = v_node_t - v_beam_t
+                inv_eff_mt = sum_inv_imp * 3.5
+                Jt = -v_rel_t / inv_eff_mt
+
+                fr = (node.friction + ep1.friction + ep2.friction) / 3.0
+                max_friction = fr * Jn
+                if abs(Jt) > max_friction:
+                    Jt = math.copysign(max_friction, Jt)
+
+                v_node_t_new = v_node_t + Jt * inv_m_n
+                v1t_new = v1t - Jt * (1.0 - t) * inv_m1 if inv_m1 > 0 else v1t
+                v2t_new = v2t - Jt * t * inv_m2 if inv_m2 > 0 else v2t
+
+                node.velocity[0] = v_node_n_new * nx + v_node_t_new * tx
+                node.velocity[1] = v_node_n_new * ny + v_node_t_new * ty
+                if inv_m1 > 0:
+                    ep1.velocity[0] = v1n_new * nx + v1t_new * tx
+                    ep1.velocity[1] = v1n_new * ny + v1t_new * ty
+                if inv_m2 > 0:
+                    ep2.velocity[0] = v2n_new * nx + v2t_new * tx
+                    ep2.velocity[1] = v2n_new * ny + v2t_new * ty
+
     def resolve_collisions(self, obj: Object):
         """
         Обработка столкновений конкретного объекта с внешними границами симуляции (Area).
@@ -472,6 +592,7 @@ class PhysicSimulation:
         # Структурированная обработка столкновений
         # Приоритетное вычисление столкновений шаров между собой
         self.resolve_ball_collisions()
+        self.resolve_node_beam_collisions()
 
         # Обработка столкновений со стенами
         # Это гарантирует, что если один шар вытолкнет другой наружу, стена вернет его обратно на экран

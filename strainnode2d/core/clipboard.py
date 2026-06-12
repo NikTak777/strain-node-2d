@@ -49,6 +49,8 @@ def snapshot_spring(spring: Spring, id1: int, id2: int) -> dict:
         "yield_limit": spring.yield_limit,
         "break_limit": spring.break_limit,
         "rest_length": spring.rest_length,
+        "collision_enabled": spring.collision_enabled,
+        "collision_radius": spring.collision_radius,
     }
     if isinstance(spring, Hydraulic):
         data["speed"] = spring.speed
@@ -119,6 +121,8 @@ def instantiate_spring(spring_data: dict, obj1: Object, obj2: Object) -> Spring:
         "yield_limit": spring_data["yield_limit"],
         "break_limit": spring_data["break_limit"],
         "rest_length": spring_data["rest_length"],
+        "collision_enabled": spring_data.get("collision_enabled", False),
+        "collision_radius": spring_data.get("collision_radius", 0.08),
     }
 
     if issubclass(target_class, Hydraulic):

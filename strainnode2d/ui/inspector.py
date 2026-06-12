@@ -47,6 +47,7 @@ class InspectorHUD:
         ("Предел текучести:", "yield_limit"),
         ("Предел разрыва:", "break_limit"),
         ("Длина покоя (м):", "rest_length"),
+        ("Радиус коллизии (м):", "collision_radius"),
     ]
     HYDRAULIC_FIELDS = [
         ("Скорость (м/с):", "speed"),
@@ -90,6 +91,7 @@ class InspectorHUD:
         self.pin_btn_rect = None
         self.change_btn_rect = None
         self.flip_btn_rect = None
+        self.collision_btn_rect = None
         self.edit_btn_rect = None
         self.save_btn_rect = None
         self.cancel_btn_rect = None
@@ -351,6 +353,9 @@ class InspectorHUD:
             return True
 
         if isinstance(target, Spring):
+            if self.collision_btn_rect and self.collision_btn_rect.collidepoint(mx, my):
+                target.collision_enabled = not target.collision_enabled
+                return True
             if self.flip_btn_rect and self.flip_btn_rect.collidepoint(mx, my):
                 if target.__class__.__name__ == "AeroBeam":
                     target.normal_flip *= -1
@@ -415,6 +420,7 @@ class InspectorHUD:
             target.yield_limit = values["yield_limit"]
             target.break_limit = values["break_limit"]
             target.rest_length = values["rest_length"]
+            target.collision_radius = values["collision_radius"]
             type_name = target.__class__.__name__
             if type_name == "Hydraulic":
                 target.speed = values["speed"]
@@ -533,8 +539,10 @@ class InspectorHUD:
         total_height = sum(surf.get_height() for surf in rendered) + (len(lines) - 1) * 2
         content_height = total_height + self.padding * 2 + self.btn_height + 10
         content_height += self.btn_height + 5
-        if isinstance(target, Spring) and target.__class__.__name__ == "AeroBeam":
+        if isinstance(target, Spring):
             content_height += self.btn_height + 5
+            if target.__class__.__name__ == "AeroBeam":
+                content_height += self.btn_height + 5
         return max_width + self.padding * 2, content_height
 
     def _build_view_lines(self, target: Union[Object, Spring]) -> list[str]:
@@ -570,6 +578,8 @@ class InspectorHUD:
                 f"Нагрузка:  {abs(strain_pct):.1f}%",
                 f"Текучесть: {target.yield_limit:.2f}",
                 f"Разрыв:    {target.break_limit:.2f}",
+                f"Коллизия:  {'Вкл' if target.collision_enabled else 'Выкл'}",
+                f"Рад. колл: {target.collision_radius:.2f} м",
             ])
             if type_name == "Hydraulic":
                 lines.extend([
@@ -675,6 +685,7 @@ class InspectorHUD:
         self.edit_btn_rect = None
         self.change_btn_rect = None
         self.flip_btn_rect = None
+        self.collision_btn_rect = None
 
         lines = self._build_view_lines(target)
         rendered_lines = [self.font.render(line, True, (240, 240, 240)) for line in lines]
@@ -694,6 +705,14 @@ class InspectorHUD:
         self._draw_button(screen, btn_rect, "Изменить тип", (70, 100, 200))
         self.change_btn_rect = btn_rect
         curr_y += self.btn_height + 5
+
+        if isinstance(target, Spring):
+            collision_label = "Коллизия: выкл" if not target.collision_enabled else "Коллизия: вкл"
+            collision_color = (90, 90, 100) if not target.collision_enabled else (60, 160, 90)
+            collision_rect = pygame.Rect(hud_x + self.padding, curr_y, bg_width - self.padding * 2, self.btn_height)
+            self._draw_button(screen, collision_rect, collision_label, collision_color)
+            self.collision_btn_rect = collision_rect
+            curr_y += self.btn_height + 5
 
         if isinstance(target, Spring) and target.__class__.__name__ == "AeroBeam":
             flip_rect = pygame.Rect(hud_x + self.padding, curr_y, bg_width - self.padding * 2, self.btn_height)
