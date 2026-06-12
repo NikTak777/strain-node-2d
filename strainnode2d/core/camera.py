@@ -25,17 +25,22 @@ class Camera:
         self.x = 0.0          # Физическая координата X центра экрана
         self.y = 0.0          # Физическая координата Y центра экрана
         self.zoom = 1.0       # Множитель масштаба (1.0 = нормальный)
-        self.target = None    # Объект для слежения
+        self.target = None         # Узел для слежения
+        self.spring_target = None  # Балка для слежения (центр между узлами)
         self.width = width    # Ширина окна
         self.height = height  # Высота окна
         self.focus_x = None   # Точка для разового плавного перелёта
         self.focus_y = None
 
+    def clear_follow(self):
+        self.target = None
+        self.spring_target = None
+
     def pan_to(self, x: float, y: float):
         """Запускает быстрый плавный перелёт камеры к точке в мире."""
         self.focus_x = x
         self.focus_y = y
-        self.target = None
+        self.clear_follow()
 
     def update(self, dt: float):
         """Плавное следование за целью или перелёт к заданной точке."""
@@ -51,6 +56,21 @@ class Camera:
                 t = min(1.0, 10.0 * dt)
                 self.x += dx * t
                 self.y += dy * t
+            return
+
+        if self.spring_target is not None:
+            spring = self.spring_target
+            if getattr(spring, 'is_broken', False):
+                self.spring_target = None
+            else:
+                try:
+                    x1, y1 = spring.obj1.get_location()
+                    x2, y2 = spring.obj2.get_location()
+                    tx, ty = (x1 + x2) * 0.5, (y1 + y2) * 0.5
+                    self.x += (tx - self.x) * 5.0 * dt
+                    self.y += (ty - self.y) * 5.0 * dt
+                except AttributeError:
+                    self.spring_target = None
             return
 
         if self.target is not None:

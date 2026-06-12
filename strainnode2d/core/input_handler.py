@@ -81,7 +81,7 @@ class InputHandler:
                             break
 
                     if clicked_obj is None:
-                        click_radius = 0.3
+                        click_radius = 0.1
                         for spring in app.sim.springs:
                             x1, y1 = spring.obj1.get_location()
                             x2, y2 = spring.obj2.get_location()
@@ -133,7 +133,7 @@ class InputHandler:
                             app.is_panning = True
                             app.pan_start_mouse = pygame.mouse.get_pos()
                             app.pan_start_camera = (app.camera.x, app.camera.y)
-                            app.camera.target = None
+                            app.camera.clear_follow()
                         elif is_shift:
                             rand_radius = random.uniform(0.15, 1.0)
                             rand_velocity = [random.uniform(-10, 10), random.uniform(-10, 10)]
@@ -231,10 +231,14 @@ class InputHandler:
                     app.time_scale = max(0.1, app.time_scale - 0.1)
 
                 elif event.key == pygame.K_f:
-                    if len(app.selected_nodes) == 1:
+                    if len(app.selected_springs) == 1:
+                        app.camera.clear_follow()
+                        app.camera.spring_target = app.selected_springs[0]
+                    elif len(app.selected_nodes) == 1:
+                        app.camera.clear_follow()
                         app.camera.target = app.selected_nodes[0]
                     else:
-                        app.camera.target = None
+                        app.camera.clear_follow()
 
                 # Управление моторами
                 elif event.key == pygame.K_a:
