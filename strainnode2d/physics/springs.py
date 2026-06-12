@@ -283,9 +283,17 @@ class AeroBeam(Spring):
         self.current_downforce = 0.0
         self.current_frontal_area = 0.0
         self.current_ge_force = 0.0
+        self.current_sin_alpha = 0.0
+
+    def _reset_aero_telemetry(self):
+        self.current_drag = 0.0
+        self.current_downforce = 0.0
+        self.current_frontal_area = 0.0
+        self.current_sin_alpha = 0.0
 
     def update(self, dt: float, air_density: float = 1.29):
         super().update(dt)
+        self._reset_aero_telemetry()
 
         if self.is_broken:
             return
@@ -318,6 +326,7 @@ class AeroBeam(Spring):
         # Угол атаки (скалярное произведение скорости на нормаль)
         # sin_alpha = 1 (летит плашмя), sin_alpha = 0 (летит вдоль потока, как копье)
         sin_alpha = v_norm_x * nx + v_norm_y * ny
+        self.current_sin_alpha = sin_alpha
 
         # Аэродинамическая тень
         if sin_alpha <= 0:

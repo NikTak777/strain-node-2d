@@ -226,8 +226,8 @@ class InputHandler:
                 if event.key == pygame.K_SPACE:
                     app.is_paused = not app.is_paused
                 elif event.key == pygame.K_TAB:
-                    # Включает/Выключает режим отладки
-                    app.debug_mode = not getattr(app, 'debug_mode', False)
+                    # 0 — выкл, 1 — нормали, 2 — визуализация сопротивления
+                    app.debug_mode = (getattr(app, 'debug_mode', 0) + 1) % 3
                 elif event.key == pygame.K_UP:
                     # Ускоряет, но не больше 1.0 (начальная скорость)
                     app.time_scale = min(1.0, app.time_scale + 0.1)

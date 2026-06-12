@@ -81,6 +81,7 @@ class SimulationApp:
 
         self.is_paused = False
         self.time_scale = 1.0  # От 0.1 до 1.0
+        self.debug_mode = 0  # 0 — выкл, 1 — нормали AeroBeam, 2 — сопротивление
 
         self.font = pygame.font.SysFont("Consolas", 18)
         self.hud_font = pygame.font.SysFont("Consolas", 14)
@@ -126,6 +127,70 @@ class SimulationApp:
         cx = sum(obj.location[0] for obj in objects) * inv_n
         cy = sum(obj.location[1] for obj in objects) * inv_n
         self.camera.pan_to(cx, cy)
+
+    def _draw_aero_debug(self):
+        """Отрисовка отладочных данных по аэродинамике."""
+        debug_mode = getattr(self, 'debug_mode', 0)
+        if debug_mode == 0:
+            return
+
+        show_normals = debug_mode == 1
+        show_drag = debug_mode == 2
+
+        for spring in self.sim.springs:
+            if spring.__class__.__name__ != "AeroBeam":
+                continue
+
+            x1, y1 = spring.obj1.get_location()
+            x2, y2 = spring.obj2.get_location()
+            cx, cy = (x1 + x2) / 2, (y1 + y2) / 2
+            L = math.sqrt((x2 - x1) ** 2 + (y2 - y1) ** 2)
+            if L == 0:
+                continue
+
+            nx = (-(y2 - y1) / L) * spring.normal_flip
+            ny = ((x2 - x1) / L) * spring.normal_flip
+            sc_cx, sc_cy = self.camera.phys_to_screen(cx, cy, self.scale)
+
+            if show_normals:
+                arrow_len = 1.5
+                end_x, end_y = cx + nx * arrow_len, cy + ny * arrow_len
+                sc_ex, sc_ey = self.camera.phys_to_screen(end_x, end_y, self.scale)
+                pygame.draw.line(self.screen, (255, 255, 0), (sc_cx, sc_cy), (sc_ex, sc_ey), 2)
+                pygame.draw.circle(self.screen, (255, 50, 50), (int(sc_ex), int(sc_ey)), 4)
+
+            if show_drag:
+                drag = getattr(spring, 'current_drag', 0.0)
+                if drag < 0.5:
+                    continue
+
+                stripe_len = min(5.0, math.sqrt(drag) * 0.07)
+                sin_alpha = abs(getattr(spring, 'current_sin_alpha', 0.0))
+                stripe_len *= max(0.15, sin_alpha)
+
+                back_x = cx - nx * stripe_len
+                back_y = cy - ny * stripe_len
+                sc_bx, sc_by = self.camera.phys_to_screen(back_x, back_y, self.scale)
+
+                intensity = min(1.0, drag / 800.0)
+                color = (
+                    int(40 + 60 * intensity),
+                    int(120 + 100 * intensity),
+                    int(220 + 35 * intensity),
+                )
+                thickness = max(3, min(12, int(3 + stripe_len * self.scale * self.camera.zoom * 0.15)))
+
+                pygame.draw.line(self.screen, color, (sc_cx, sc_cy), (sc_bx, sc_by), thickness)
+
+                tx, ty = -(sc_by - sc_cy), (sc_bx - sc_cx)
+                t_len = math.sqrt(tx * tx + ty * ty)
+                if t_len > 0:
+                    tx, ty = tx / t_len, ty / t_len
+                    wing = max(4, int(spring.chord * self.scale * self.camera.zoom * sin_alpha * 0.25))
+                    tip_x, tip_y = sc_bx, sc_by
+                    p1 = (int(tip_x + tx * wing), int(tip_y + ty * wing))
+                    p2 = (int(tip_x - tx * wing), int(tip_y - ty * wing))
+                    pygame.draw.polygon(self.screen, color, [(sc_cx, sc_cy), p1, p2])
 
     @staticmethod
     def get_ball_surface(obj: Object, scale: float = 20):
@@ -357,7 +422,8 @@ class SimulationApp:
             f"Drag:    {total_drag:.1f} N",
             f"DownFrc: {total_downforce:.1f} N",
             f"GroundE: {total_ge_force:.1f} N",
-            f"L/D:     {ld_ratio:.2f}"
+            f"L/D:     {ld_ratio:.2f}",
+            f"Debug:   {['off', 'normals', 'drag'][getattr(self, 'debug_mode', 0)]}",
         ]
 
         for i, text_line in enumerate(telemetry):
@@ -365,30 +431,7 @@ class SimulationApp:
             text_surface = self.font.render(text_line, True, color)
             self.screen.blit(text_surface, (20, 20 + i * 22))
 
-        if getattr(self, 'debug_mode', False):
-            for spring in self.sim.springs:
-                if spring.__class__.__name__ == "AeroBeam":
-                    x1, y1 = spring.obj1.get_location()
-                    x2, y2 = spring.obj2.get_location()
-                    cx, cy = (x1 + x2) / 2, (y1 + y2) / 2
-                    L = math.sqrt((x2 - x1) ** 2 + (y2 - y1) ** 2)
-                    if L == 0: continue
-
-                    # Считаем нормаль
-                    nx = (-(y2 - y1) / L) * spring.normal_flip
-                    ny = ((x2 - x1) / L) * spring.normal_flip
-
-                    # Длина стрелки (в физических метрах, например 1.5 метра)
-                    arrow_len = 1.5
-                    end_x, end_y = cx + nx * arrow_len, cy + ny * arrow_len
-
-                    # Переводим в экранные координаты
-                    sc_cx, sc_cy = self.camera.phys_to_screen(cx, cy, self.scale)
-                    sc_ex, sc_ey = self.camera.phys_to_screen(end_x, end_y, self.scale)
-
-                    # Рисуем красивую желтую линию
-                    pygame.draw.line(self.screen, (255, 255, 0), (sc_cx, sc_cy), (sc_ex, sc_ey), 2)
-                    pygame.draw.circle(self.screen, (255, 50, 50), (int(sc_ex), int(sc_ey)), 4)
+        self._draw_aero_debug()
 
         if len(self.selected_springs) == 1:
             self.inspector.draw(self.screen, self.selected_springs[0], self.scale, self.camera, self.width, self.height)
