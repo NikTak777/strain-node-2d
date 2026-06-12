@@ -223,3 +223,169 @@ class Hydraulic(Spring):
 
         # Передается управление стандартной физике пружины
         super().update(dt)
+
+
+class Beam(Spring):
+    def __init__(self, obj1: Object, obj2: Object, **kwargs):
+        """
+        Инициализация максимально жесткой балки.
+        Использует экстремальные коэффициенты жесткости для минимизации деформации.
+        Рекомендуется для создания несущих рам, где эластичность не требуется.
+
+        :param obj1: Первый физический узел (Object), к которому привязана балка.
+        :param obj2: Второй физический узел (Object), к которому привязана балка.
+        :param kwargs: Дополнительные параметры, передаваемые в родительский класс Spring.
+                       Позволяет переопределить rest_length, k, d и другие свойства.
+        """
+        kwargs.setdefault('k', 100000000.0)
+        kwargs.setdefault('d', 500000.0)
+
+        kwargs.setdefault('yield_limit', float('inf'))
+        kwargs.setdefault('break_limit', 0.99)
+
+        super().__init__(obj1, obj2, **kwargs)
+
+    def update(self, dt: float):
+        """
+        Обновление состояния балки.
+
+        :param dt: Шаг времени симуляции (в секундах).
+        """
+        super().update(dt)
+
+
+class AeroBeam(Spring):
+    def __init__(self, obj1: Object, obj2: Object, chord: float = 1.0,
+                 lift_coef: float = 1.0, base_drag: float = 0.1, induced_drag: float = 1.0, **kwargs):
+        """
+        Инициализация аэродинамической балки (Крыла / Спойлера).
+        Помимо упругости, генерирует подъемную силу и лобовое сопротивление
+        в зависимости от скорости и угла атаки.
+
+        :param chord: Ширина крыла (влияет на площадь поверхности).
+        :param lift_coef: Базовый коэффициент подъемной силы (Lift).
+        :param base_drag: Базовое трение воздуха (когда летит ровно, как стрела).
+        :param induced_drag: Добавочное сопротивление (когда летит плашмя, как парашют).
+        """
+        kwargs.setdefault('k', 50000.0)
+        kwargs.setdefault('d', 500.0)
+        self.normal_flip = kwargs.pop('normal_flip', 1)
+
+        super().__init__(obj1, obj2, **kwargs)
+
+        self.chord = chord
+        self.lift_coef = lift_coef
+        self.base_drag = base_drag
+        self.induced_drag = induced_drag
+
+        # Переменные для телеметрии
+        self.current_drag = 0.0
+        self.current_downforce = 0.0
+        self.current_frontal_area = 0.0
+        self.current_ge_force = 0.0
+        self.current_sin_alpha = 0.0
+
+    def _reset_aero_telemetry(self):
+        self.current_drag = 0.0
+        self.current_downforce = 0.0
+        self.current_frontal_area = 0.0
+        self.current_sin_alpha = 0.0
+
+    def update(self, dt: float, air_density: float = 1.29):
+        super().update(dt)
+        self._reset_aero_telemetry()
+
+        if self.is_broken:
+            return
+
+        # Вычисляется геометрия балки
+        dx = self.obj2.location[0] - self.obj1.location[0]
+        dy = self.obj2.location[1] - self.obj1.location[1]
+        L = math.sqrt(dx ** 2 + dy ** 2)
+
+        if L == 0.0:
+            return
+
+        # Вычисляется скорость центра балки
+        vx = (self.obj1.velocity[0] + self.obj2.velocity[0]) / 2.0
+        vy = (self.obj1.velocity[1] + self.obj2.velocity[1]) / 2.0
+        v_sq = vx ** 2 + vy ** 2
+
+        # Если скорость слишком мала, аэродинамика не работает (экономия ресурсов)
+        if v_sq < 0.01:
+            return
+
+        v_mag = math.sqrt(v_sq)
+        v_norm_x = vx / v_mag
+        v_norm_y = vy / v_mag
+
+        # Нормаль к балке (с учетом переворота)
+        nx = (-dy / L) * self.normal_flip
+        ny = (dx / L) * self.normal_flip
+
+        # Угол атаки (скалярное произведение скорости на нормаль)
+        # sin_alpha = 1 (летит плашмя), sin_alpha = 0 (летит вдоль потока, как копье)
+        sin_alpha = v_norm_x * nx + v_norm_y * ny
+        self.current_sin_alpha = sin_alpha
+
+        # Аэродинамическая тень
+        if sin_alpha <= 0:
+            return
+
+        # cos_alpha нужен для расчета подъемной силы крыла
+        cos_alpha = math.sqrt(max(0.0, 1.0 - sin_alpha ** 2))
+
+        # Динамическое давление (q = 0.5 * p * V^2 * Площадь)
+        q = 0.5 * air_density * v_sq * (L * self.chord)
+
+        # Расчёт сил
+        # Сила сопротивления (Drag) - направлена строго против движения
+        current_drag_coef = self.base_drag + self.induced_drag * abs(sin_alpha)
+        f_drag = q * current_drag_coef
+
+        drag_fx = -v_norm_x * f_drag
+        drag_fy = -v_norm_y * f_drag
+
+        # Подъемная сила (Lift) - перпендикулярно движению
+        # Аппроксимация тонкого профиля: подъемная сила ~ sin(2*alpha) = 2 * sin * cos
+        f_lift = q * self.lift_coef * sin_alpha * cos_alpha
+
+        # Направление подъемной силы (вектор скорости, повернутый на 90 град)
+        lift_dir_x = -v_norm_y
+        lift_dir_y = v_norm_x
+
+        # Векторное произведение скорости и нормали
+        cross_prod = v_norm_y * nx - v_norm_x * ny
+
+        # Берет только знак (1.0 или -1.0)
+        lift_sign = 1.0 if cross_prod >= 0 else -1.0
+
+        # Умножаем силу на знак. Теперь балка сама решает, спойлер она или крыло!
+        lift_fx = lift_dir_x * f_lift * lift_sign
+        lift_fy = lift_dir_y * f_lift * lift_sign
+
+        # Общая аэродинамическая сила
+        total_fx = drag_fx + lift_fx
+        total_fy = drag_fy + lift_fy
+
+        self.current_drag = f_drag  # Сопротивление воздуха
+        self.current_downforce = -total_fy  # Сила, давящая машину в пол (минус, т.к. пол внизу)
+
+        # Считаем фронтальную площадь проекции (Миделево сечение)
+        # Если балка в тени (sin_alpha <= 0), её площадь = 0
+        if sin_alpha > 0:
+            self.current_frontal_area = (L * self.chord) * sin_alpha
+        else:
+            self.current_frontal_area = 0.0
+
+        # Применяется половина силы к каждому узлу
+        half_fx = total_fx / 2.0
+        half_fy = total_fy / 2.0
+
+        if not getattr(self.obj1, 'is_static', False):
+            self.obj1.velocity[0] += (half_fx / self.obj1.mass) * dt
+            self.obj1.velocity[1] += (half_fy / self.obj1.mass) * dt
+
+        if not getattr(self.obj2, 'is_static', False):
+            self.obj2.velocity[0] += (half_fx / self.obj2.mass) * dt
+            self.obj2.velocity[1] += (half_fy / self.obj2.mass) * dt

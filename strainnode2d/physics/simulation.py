@@ -315,6 +315,76 @@ class PhysicSimulation:
             obj.location[1] = max_y - ra
             apply_contact_physics(1, -1)
 
+    def apply_ground_effect(self, spring: Spring):
+        """
+        Симулирует аэродинамический граунд-эффект.
+        Работает только для внешних аэро-балок (AeroBeam), нормаль которых направлена в землю.
+        """
+        # Проверяет, что это аэро-балка (только обшивка взаимодействует с воздухом)
+        if spring.__class__.__name__ != "AeroBeam":
+            return
+
+        obj1 = spring.obj1
+        obj2 = spring.obj2
+
+        # Вычисляет геометрию нормали (куда "смотрит" поверхность)
+        dx = obj2.location[0] - obj1.location[0]
+        dy = obj2.location[1] - obj1.location[1]
+        L = math.sqrt(dx ** 2 + dy ** 2)
+
+        if L == 0:
+            return
+
+        # Вычисляет Y-компоненту вектора нормали точно так же, как внутри AeroBeam
+        ny = (dx / L) * spring.normal_flip
+
+        # 3. Фильтр днища: Нормаль должна смотреть ВНИЗ.
+        # Если ny > 0 (смотрит вверх, как крыша) или ny == 0 (вертикальный бампер) - игнорируем!
+        # Берем небольшой допуск (-0.1), чтобы исключить почти вертикальные детали.
+        if ny > -0.1:
+            return
+
+        # 4. Вычисляем реальную высоту над землей
+        borders = self.Area.get_border()
+        ground_y = borders[1][1]  # Координата пола (min_y)
+
+        h1 = obj1.location[1] - ground_y
+        h2 = obj2.location[1] - ground_y
+
+        # Если балка слишком высоко (например, больше 1 метра над землей), вакуум рассеивается
+        if h1 > 0.5 or h2 > 0.5:
+            return
+
+        avg_height = (h1 + h2) / 2.0
+        avg_height = max(0.05, avg_height)  # Защита от деления на ноль при ударе днищем
+
+        # 5. Вычисляем горизонтальную скорость
+        vx = (obj1.velocity[0] + obj2.velocity[0]) / 2.0
+        v_sq = vx ** 2
+
+        # Граунд-эффект начинает работать только на высоких скоростях (напр. > 10 м/с = 36 км/ч)
+        if v_sq < 100:
+            spring.current_ge_force = 0.0
+            return
+
+        # 6. Формула Бернулли с учетом ширины (chord) машины
+        # Сила вакуума = Константа * Скорость^2 * (Площадь днища) / Расстояние до земли
+        GE_Multiplier = 0.2  # Коэффициент мощности граунд-эффекта
+        downforce = GE_Multiplier * self.density * v_sq * (L * spring.chord) / avg_height
+
+        # max_downforce = (obj1.mass + obj2.mass) * self.g * 3.0
+        # downforce = min(downforce, max_downforce)
+
+        spring.current_ge_force = downforce
+
+        # Применяем силу направленную строго вниз (по оси Y с минусом)
+        half_force = downforce / 2.0
+
+        if not getattr(obj1, 'is_static', False):
+            obj1.velocity[1] -= (half_force / obj1.mass) * self.dt
+        if not getattr(obj2, 'is_static', False):
+            obj2.velocity[1] -= (half_force / obj2.mass) * self.dt
+
     def step(self, dt: float):
         """
         Выполнение одного шага физической симуляции для всех объектов и связей.
@@ -323,7 +393,11 @@ class PhysicSimulation:
         """
         # Вычисление сил во всех балках и обновление скоростей узлов
         for spring in self.springs:
-            spring.update(dt)
+            if hasattr(spring, 'air_density'):
+                spring.update(dt, air_density=self.density)
+            else:
+                spring.update(dt)
+            # self.apply_ground_effect(spring) # Вычисление граунд-эффекта
 
         # Очистка физического мира от разорванных связей
         self.springs = [s for s in self.springs if not s.is_broken]

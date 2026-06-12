@@ -67,7 +67,7 @@ class Object:
 
 
 class MotorWheel(Object):
-    def __init__(self, x: float, y: float, radius: float = 15.0, power: float = 25.0, **kwargs):
+    def __init__(self, x: float, y: float, radius: float = 15.0, power: float = 25.0, max_speed: float = 50.0, **kwargs):
         """
         Инициализация моторного колеса (узла с возможностью вращения).
 
@@ -75,18 +75,47 @@ class MotorWheel(Object):
         :param y: Начальная позиция по оси Y
         :param radius: Радиус колеса (м)
         :param power: Мощность мотора (ускорение вращения в рад/с²)
+        :param max_speed: Максимальная угловая скорость (рад/с) - лимит оборотов мотора.
         :param kwargs: Дополнительные параметры для базового класса Object
         """
         super().__init__(x, y, radius=radius, **kwargs)
 
         self.power = power  # Ускорение вращения (рад/с^2)
+        self.max_speed = max_speed  # Лимит скорости мотора (рад/с)
         self.direction = 0  # Текущее направление: 0 - стоп, 1 - влево (A), -1 - вправо (D)
 
     def apply_motor(self, dt):
         """
-        Прикладывает крутящий момент к колесу, изменяя его угловую скорость.
+        Прикладывает крутящий момент к колесу с учетом кривой падения мощности.
 
         :param dt: Шаг времени симуляции (с)
         """
         if self.direction != 0:
-            self.angular_velocity += self.direction * self.power * dt
+            current_w = self.angular_velocity * self.direction
+
+            if current_w >= self.max_speed:
+                return
+
+            torque_multiplier = 1.0 - (current_w / self.max_speed)
+
+            if torque_multiplier > 1.0:
+                torque_multiplier = 1.0
+
+            self.angular_velocity += self.direction * (self.power * torque_multiplier) * dt
+
+
+
+
+class StructuralNode(Object):
+    def __init__(self, x: float, y: float, radius: float = 10.0, **kwargs):
+        """
+        Структурный узел, обладает бесконечным моментом инерции из-за чего физически не может вращаться.
+        """
+        # По умолчанию делаем каркас менее прыгучим, чем обычные мячи
+        kwargs.setdefault('restitution', 0.1)
+        # Трение металла об асфальт (будет скользить)
+        kwargs.setdefault('friction', 0.5)
+
+        super().__init__(x, y, radius=radius, **kwargs)
+        self.I = float('inf')
+        self.angular_velocity = 0.0

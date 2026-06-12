@@ -1,6 +1,24 @@
+"""
+    This file is part of StrainNode2D.
+    Copyright (C) 2026 Nikita Kondrakhin
+
+    StrainNode2D is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    StrainNode2D is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with this program. If not, see <https://www.gnu.org/licenses/>.
+"""
+
 import json
-from strainnode2d.physics.objects import Object, MotorWheel
-from strainnode2d.physics.springs import Spring
+from strainnode2d.physics.objects import Object, MotorWheel, StructuralNode
+from strainnode2d.physics.springs import Spring, Rope, Hydraulic, Beam, AeroBeam
 
 
 def save_scene(sim, filename):
@@ -33,6 +51,7 @@ def save_scene(sim, filename):
         # Если это мотор, сохраняем его специфичные свойства
         if isinstance(obj, MotorWheel):
             obj_data["power"] = obj.power
+            obj_data["max_speed"] = obj.max_speed
 
         data["objects"].append(obj_data)
 
@@ -41,13 +60,33 @@ def save_scene(sim, filename):
         if spring.is_broken:
             continue
 
-        data["springs"].append({
+        # Базовые параметры, которые есть у всех балок
+        spring_data = {
+            "type": spring.__class__.__name__,  # <--- Теперь мы сохраняем тип!
             "obj1_id": obj_to_id[spring.obj1],
             "obj2_id": obj_to_id[spring.obj2],
             "k": spring.k,
             "d": spring.d,
-            "yield_limit": spring.yield_limit
-        })
+            "yield_limit": spring.yield_limit,
+            "break_limit": getattr(spring, 'break_limit', 0.35),
+            "rest_length": spring.rest_length
+        }
+
+        # Специфичные параметры для гидравлики
+        if isinstance(spring, Hydraulic):
+            spring_data["speed"] = spring.speed
+            spring_data["min_length"] = spring.min_length
+            spring_data["max_length"] = spring.max_length
+
+        # Специфичные параметры для аэро-балок
+        elif isinstance(spring, AeroBeam):
+            spring_data["chord"] = spring.chord
+            spring_data["lift_coef"] = spring.lift_coef
+            spring_data["base_drag"] = spring.base_drag
+            spring_data["induced_drag"] = spring.induced_drag
+            spring_data["normal_flip"] = getattr(spring, 'normal_flip', 1)
+
+        data["springs"].append(spring_data)
 
     # Записываем в файл с красивыми отступами
     with open(filename, 'w', encoding='utf-8') as f:
@@ -66,11 +105,10 @@ def load_scene(sim, filename):
     # Словарь для связывания ID из файла с созданными объектами
     id_to_obj = {}
 
-    # 1. Загружаем объекты
+    # 1. Загружаем объекты (без изменений)
     for obj_data in data["objects"]:
         obj_type = obj_data["type"]
 
-        # Извлекаем общие параметры
         kwargs = {
             "x": obj_data["x"],
             "y": obj_data["y"],
@@ -79,17 +117,18 @@ def load_scene(sim, filename):
             "density": obj_data["density"],
             "restitution": obj_data["restitution"],
             "friction": obj_data["friction"],
-            "color": tuple(obj_data["color"])  # Возвращаем кортеж для Pygame
+            "color": tuple(obj_data["color"])
         }
 
-        # Создаем нужный класс
         if obj_type == "MotorWheel":
             kwargs["power"] = obj_data.get("power", 500.0)
+            kwargs["max_speed"] = obj_data.get("max_speed", 50.0)
             obj = MotorWheel(**kwargs)
+        elif obj_type == "StructuralNode":
+            obj = StructuralNode(**kwargs)
         else:
             obj = Object(**kwargs)
 
-        # Восстанавливаем состояние
         obj.is_static = obj_data.get("is_static", False)
         obj.angle = obj_data.get("angle", 0.0)
         obj.angular_velocity = obj_data.get("angular_velocity", 0.0)
@@ -97,11 +136,45 @@ def load_scene(sim, filename):
         id_to_obj[obj_data["id"]] = obj
         sim.add_object(obj)
 
-    # 2. Восстанавливаем пружины
+    # 2. Восстанавливаем пружины с учетом их типа
     for spring_data in data["springs"]:
         obj1 = id_to_obj[spring_data["obj1_id"]]
         obj2 = id_to_obj[spring_data["obj2_id"]]
 
-        spring = Spring(obj1, obj2, k=spring_data["k"], d=spring_data["d"])
-        spring.yield_limit = spring_data.get("yield_limit", float('inf'))
+        # Получаем тип. Если это старое сохранение, по умолчанию будет "Spring"
+        s_type = spring_data.get("type", "Spring")
+
+        # Собираем общие аргументы
+        kwargs = {
+            "k": spring_data.get("k", 15000.0),
+            "d": spring_data.get("d", 150.0),
+            "yield_limit": spring_data.get("yield_limit", float('inf')),
+            "break_limit": spring_data.get("break_limit", 0.35)
+        }
+
+        # Восстанавливаем сохраненную длину, если она есть
+        if "rest_length" in spring_data:
+            kwargs["rest_length"] = spring_data["rest_length"]
+
+        # Создаем нужный класс балки
+        if s_type == "Rope":
+            spring = Rope(obj1, obj2, **kwargs)
+        elif s_type == "Beam":
+            spring = Beam(obj1, obj2, **kwargs)
+        elif s_type == "Hydraulic":
+            kwargs["speed"] = spring_data.get("speed", 2.0)
+            kwargs["min_length"] = spring_data.get("min_length", 0.5)
+            kwargs["max_length"] = spring_data.get("max_length", 5.0)
+            spring = Hydraulic(obj1, obj2, **kwargs)
+        elif s_type == "AeroBeam":
+            kwargs["chord"] = spring_data.get("chord", 1.0)
+            kwargs["lift_coef"] = spring_data.get("lift_coef", 1.5)
+            kwargs["base_drag"] = spring_data.get("base_drag", 0.1)
+            kwargs["induced_drag"] = spring_data.get("induced_drag", 1.0)
+            kwargs["normal_flip"] = spring_data.get("normal_flip", 1)
+            spring = AeroBeam(obj1, obj2, **kwargs)
+        else:
+            # Фолбэк на обычную пружину
+            spring = Spring(obj1, obj2, **kwargs)
+
         sim.add_spring(spring)

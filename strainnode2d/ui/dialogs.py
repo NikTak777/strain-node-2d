@@ -168,3 +168,38 @@ def show_edit_dialog(target):
     root.mainloop()
 
     return result if result.get("apply") else None
+
+
+def show_type_dialog(current_type_name: str):
+    """Открывает окно выбора типа балки и возвращает название выбранного класса."""
+    result = None
+    root = tk.Tk()
+    root.title("Выбор балки")
+
+    # Центрируем окно
+    window_w, window_h = 220, 200
+    screen_w = root.winfo_screenwidth()
+    screen_h = root.winfo_screenheight()
+    root.geometry(f"{window_w}x{window_h}+{int(screen_w / 2 - window_w / 2)}+{int(screen_h / 2 - window_h / 2)}")
+
+    # Чтобы окно Pygame не перекрывало Tkinter
+    root.attributes('-topmost', True)
+
+    # Переменная, хранящая выбранный тип
+    var = tk.StringVar(value=current_type_name)
+    types = ["Spring", "Rope", "Hydraulic", "Beam", "AeroBeam"]
+
+    tk.Label(root, text="Выберите тип конструкции:", font=("Arial", 10, "bold")).pack(pady=5)
+
+    for t in types:
+        tk.Radiobutton(root, text=t, variable=var, value=t).pack(anchor='w', padx=40)
+
+    def apply():
+        nonlocal result
+        result = var.get()
+        root.destroy()
+
+    tk.Button(root, text="Применить", command=apply, width=15).pack(pady=10)
+
+    root.mainloop()
+    return result
