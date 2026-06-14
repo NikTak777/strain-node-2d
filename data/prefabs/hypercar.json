@@ -55,8 +55,8 @@
             "y": 0.24367511855696256,
             "radius": 0.1,
             "velocity": [
-                -0.2512040141417437,
-                -0.018765547923652027
+                0.0,
+                0.0
             ],
             "density": 17500.0,
             "restitution": 0.5,
@@ -68,7 +68,8 @@
             ],
             "is_static": false,
             "angle": 0.0,
-            "angular_velocity": 0.0
+            "angular_velocity": 0.0,
+            "node_collision_enabled": false
         },
         {
             "id": 3,
@@ -77,8 +78,8 @@
             "y": 0.23992008259752018,
             "radius": 0.1,
             "velocity": [
-                -0.2466043161898162,
-                -0.024924938846322492
+                0.0,
+                0.0
             ],
             "density": 17500.0,
             "restitution": 0.5,
@@ -90,7 +91,8 @@
             ],
             "is_static": false,
             "angle": 0.0,
-            "angular_velocity": 0.0
+            "angular_velocity": 0.0,
+            "node_collision_enabled": false
         },
         {
             "id": 4,
@@ -99,8 +101,8 @@
             "y": 0.24411269882757916,
             "radius": 0.1,
             "velocity": [
-                -0.24366364704434407,
-                -0.020655249345492666
+                0.0,
+                0.0
             ],
             "density": 17500.0,
             "restitution": 0.5,
@@ -112,7 +114,8 @@
             ],
             "is_static": false,
             "angle": 0.0,
-            "angular_velocity": 0.0
+            "angular_velocity": 0.0,
+            "node_collision_enabled": false
         },
         {
             "id": 5,
@@ -121,8 +124,8 @@
             "y": 0.5279082522234715,
             "radius": 0.1,
             "velocity": [
-                -0.25042980664849696,
-                0.011269371423013196
+                0.0,
+                0.0
             ],
             "density": 17500.0,
             "restitution": 0.5,
@@ -134,7 +137,8 @@
             ],
             "is_static": false,
             "angle": 0.0,
-            "angular_velocity": 0.0
+            "angular_velocity": 0.0,
+            "node_collision_enabled": false
         },
         {
             "id": 6,
@@ -143,8 +147,8 @@
             "y": 1.2203324509158342,
             "radius": 0.1,
             "velocity": [
-                -0.2358735265157506,
-                0.017953270057280618
+                0.0,
+                0.0
             ],
             "density": 17500.0,
             "restitution": 0.5,
@@ -156,7 +160,8 @@
             ],
             "is_static": false,
             "angle": 0.0,
-            "angular_velocity": 0.0
+            "angular_velocity": 0.0,
+            "node_collision_enabled": false
         },
         {
             "id": 7,
@@ -165,8 +170,8 @@
             "y": 0.896774025149981,
             "radius": 0.1,
             "velocity": [
-                -0.2422151893554475,
-                0.003967764712953489
+                0.0,
+                0.0
             ],
             "density": 17500.0,
             "restitution": 0.5,
@@ -178,7 +183,8 @@
             ],
             "is_static": false,
             "angle": 0.0,
-            "angular_velocity": 0.0
+            "angular_velocity": 0.0,
+            "node_collision_enabled": false
         },
         {
             "id": 8,
@@ -187,8 +193,8 @@
             "y": 0.8826751710567368,
             "radius": 0.1,
             "velocity": [
-                -0.24337198218586917,
-                -0.021049979174598096
+                0.0,
+                0.0
             ],
             "density": 17500.0,
             "restitution": 0.5,
@@ -200,7 +206,8 @@
             ],
             "is_static": false,
             "angle": 0.0,
-            "angular_velocity": 0.0
+            "angular_velocity": 0.0,
+            "node_collision_enabled": false
         },
         {
             "id": 9,
@@ -209,8 +216,8 @@
             "y": 0.8904749056440445,
             "radius": 0.1,
             "velocity": [
-                -0.24615288166157262,
-                -0.024565324535301098
+                0.0,
+                0.0
             ],
             "density": 17500.0,
             "restitution": 0.5,
@@ -222,7 +229,8 @@
             ],
             "is_static": false,
             "angle": 0.0,
-            "angular_velocity": 0.0
+            "angular_velocity": 0.0,
+            "node_collision_enabled": false
         },
         {
             "id": 10,
@@ -231,8 +239,8 @@
             "y": 0.8927708836556015,
             "radius": 0.1,
             "velocity": [
-                -0.24605641699625658,
-                -0.02243272766675915
+                0.0,
+                0.0
             ],
             "density": 17500.0,
             "restitution": 0.5,
@@ -244,7 +252,8 @@
             ],
             "is_static": false,
             "angle": 0.0,
-            "angular_velocity": 0.0
+            "angular_velocity": 0.0,
+            "node_collision_enabled": false
         },
         {
             "id": 11,
@@ -266,7 +275,8 @@
             ],
             "is_static": false,
             "angle": 0.0,
-            "angular_velocity": 0.0
+            "angular_velocity": 0.0,
+            "node_collision_enabled": false
         },
         {
             "id": 12,
@@ -288,7 +298,8 @@
             ],
             "is_static": false,
             "angle": 0.0,
-            "angular_velocity": 0.0
+            "angular_velocity": 0.0,
+            "node_collision_enabled": false
         },
         {
             "id": 13,
@@ -310,7 +321,8 @@
             ],
             "is_static": false,
             "angle": 0.0,
-            "angular_velocity": 0.0
+            "angular_velocity": 0.0,
+            "node_collision_enabled": false
         },
         {
             "id": 14,
@@ -319,8 +331,8 @@
             "y": 1.2809736559119167,
             "radius": 0.1,
             "velocity": [
-                -0.24436498672868742,
-                -0.024352163317435876
+                0.0,
+                0.0
             ],
             "density": 17500.0,
             "restitution": 0.5,
@@ -332,7 +344,8 @@
             ],
             "is_static": false,
             "angle": 0.0,
-            "angular_velocity": 0.0
+            "angular_velocity": 0.0,
+            "node_collision_enabled": false
         }
     ],
     "springs": [
@@ -344,7 +357,9 @@
             "d": 3000.0,
             "yield_limit": 0.15,
             "break_limit": 0.35,
-            "rest_length": 0.8307497232243352
+            "rest_length": 0.8336994865816608,
+            "collision_enabled": true,
+            "collision_radius": 0.02
         },
         {
             "type": "Spring",
@@ -354,7 +369,7 @@
             "d": 3000.0,
             "yield_limit": 0.15,
             "break_limit": 0.35,
-            "rest_length": 1.160000000000002
+            "rest_length": 1.160933486122298
         },
         {
             "type": "Spring",
@@ -364,7 +379,7 @@
             "d": 3000.0,
             "yield_limit": 0.15,
             "break_limit": 0.35,
-            "rest_length": 0.7900632886041463
+            "rest_length": 0.7886919575807461
         },
         {
             "type": "Spring",
@@ -374,7 +389,7 @@
             "d": 3000.0,
             "yield_limit": 0.15,
             "break_limit": 0.35,
-            "rest_length": 0.7700000000000014
+            "rest_length": 0.7684031537031741
         },
         {
             "type": "Spring",
@@ -384,7 +399,7 @@
             "d": 3000.0,
             "yield_limit": 0.15,
             "break_limit": 0.35,
-            "rest_length": 0.9902418684820314
+            "rest_length": 0.9857255940602306
         },
         {
             "type": "Spring",
@@ -394,7 +409,7 @@
             "d": 3000.0,
             "yield_limit": 0.15,
             "break_limit": 0.35,
-            "rest_length": 0.6506919393998971
+            "rest_length": 0.6495867695336641
         },
         {
             "type": "Spring",
@@ -404,7 +419,7 @@
             "d": 3000.0,
             "yield_limit": 0.15,
             "break_limit": 0.35,
-            "rest_length": 0.6506919393998977
+            "rest_length": 0.651242410235031
         },
         {
             "type": "Spring",
@@ -414,7 +429,7 @@
             "d": 3000.0,
             "yield_limit": 0.15,
             "break_limit": 0.35,
-            "rest_length": 0.6407027391856537
+            "rest_length": 0.6395007197487673
         },
         {
             "type": "Spring",
@@ -424,7 +439,7 @@
             "d": 3000.0,
             "yield_limit": 0.15,
             "break_limit": 0.35,
-            "rest_length": 0.9264583269427991
+            "rest_length": 0.9207279276658987
         },
         {
             "type": "Spring",
@@ -434,7 +449,7 @@
             "d": 3000.0,
             "yield_limit": 0.15,
             "break_limit": 0.35,
-            "rest_length": 0.6279530488513048
+            "rest_length": 0.6234954357888888
         },
         {
             "type": "Spring",
@@ -444,7 +459,7 @@
             "d": 3000.0,
             "yield_limit": 0.15,
             "break_limit": 0.35,
-            "rest_length": 0.4957822102496204
+            "rest_length": 0.4968599783735845
         },
         {
             "type": "Spring",
@@ -454,7 +469,7 @@
             "d": 3000.0,
             "yield_limit": 0.15,
             "break_limit": 0.35,
-            "rest_length": 0.7066116330771796
+            "rest_length": 0.7067549581449944
         },
         {
             "type": "Spring",
@@ -464,7 +479,7 @@
             "d": 3000.0,
             "yield_limit": 0.15,
             "break_limit": 0.35,
-            "rest_length": 1.3009139280381283
+            "rest_length": 1.2973861957036563
         },
         {
             "type": "Spring",
@@ -474,7 +489,7 @@
             "d": 3000.0,
             "yield_limit": 0.15,
             "break_limit": 0.35,
-            "rest_length": 1.0000499987500622
+            "rest_length": 1.000528837631818
         },
         {
             "type": "Spring",
@@ -484,7 +499,7 @@
             "d": 3000.0,
             "yield_limit": 0.15,
             "break_limit": 0.35,
-            "rest_length": 1.35118466539552
+            "rest_length": 1.3540626229523465
         },
         {
             "type": "Spring",
@@ -494,7 +509,7 @@
             "d": 3000.0,
             "yield_limit": 0.15,
             "break_limit": 0.35,
-            "rest_length": 1.0401922899156666
+            "rest_length": 1.04076585327732
         },
         {
             "type": "Spring",
@@ -504,7 +519,7 @@
             "d": 3000.0,
             "yield_limit": 0.15,
             "break_limit": 0.35,
-            "rest_length": 1.0307764064044143
+            "rest_length": 1.0309154163790533
         },
         {
             "type": "Spring",
@@ -514,7 +529,7 @@
             "d": 3000.0,
             "yield_limit": 0.15,
             "break_limit": 0.35,
-            "rest_length": 0.9849365461795003
+            "rest_length": 0.9856820577358085
         },
         {
             "type": "Spring",
@@ -524,7 +539,9 @@
             "d": 3000.0,
             "yield_limit": 0.15,
             "break_limit": 0.35,
-            "rest_length": 1.1748049217553695
+            "rest_length": 1.1748049217553695,
+            "collision_enabled": true,
+            "collision_radius": 0.02
         },
         {
             "type": "Spring",
@@ -564,7 +581,7 @@
             "d": 3000.0,
             "yield_limit": 0.15,
             "break_limit": 0.35,
-            "rest_length": 1.6972672788792333
+            "rest_length": 1.6946464418502252
         },
         {
             "type": "Spring",
@@ -574,7 +591,7 @@
             "d": 3000.0,
             "yield_limit": 0.15,
             "break_limit": 0.35,
-            "rest_length": 1.6507342402944394
+            "rest_length": 1.6474289505232753
         },
         {
             "type": "Spring",
@@ -584,7 +601,7 @@
             "d": 3000.0,
             "yield_limit": 0.15,
             "break_limit": 0.35,
-            "rest_length": 1.6623477373883007
+            "rest_length": 1.6636081554914925
         },
         {
             "type": "Spring",
@@ -594,7 +611,7 @@
             "d": 3000.0,
             "yield_limit": 0.15,
             "break_limit": 0.35,
-            "rest_length": 1.7139719951037689
+            "rest_length": 1.7150819389397627
         },
         {
             "type": "Spring",
@@ -604,7 +621,7 @@
             "d": 3000.0,
             "yield_limit": 0.15,
             "break_limit": 0.35,
-            "rest_length": 1.5352524222420236
+            "rest_length": 1.5352775224418576
         },
         {
             "type": "Spring",
@@ -614,7 +631,7 @@
             "d": 3000.0,
             "yield_limit": 0.15,
             "break_limit": 0.35,
-            "rest_length": 0.39051248379533304
+            "rest_length": 0.39101161772619575
         },
         {
             "type": "Spring",
@@ -624,7 +641,7 @@
             "d": 3000.0,
             "yield_limit": 0.15,
             "break_limit": 0.35,
-            "rest_length": 0.8676981041814021
+            "rest_length": 0.8657011919839731
         },
         {
             "type": "Spring",
@@ -649,7 +666,9 @@
             "lift_coef": 1.0,
             "base_drag": 0.02,
             "induced_drag": 0.2,
-            "normal_flip": -1
+            "normal_flip": -1,
+            "collision_enabled": true,
+            "collision_radius": 0.02
         },
         {
             "type": "AeroBeam",
@@ -664,7 +683,9 @@
             "lift_coef": 1.0,
             "base_drag": 0.02,
             "induced_drag": 0.2,
-            "normal_flip": -1
+            "normal_flip": -1,
+            "collision_enabled": true,
+            "collision_radius": 0.02
         },
         {
             "type": "AeroBeam",
@@ -694,7 +715,9 @@
             "lift_coef": 1.0,
             "base_drag": 0.02,
             "induced_drag": 0.2,
-            "normal_flip": -1
+            "normal_flip": -1,
+            "collision_enabled": true,
+            "collision_radius": 0.02
         },
         {
             "type": "AeroBeam",
@@ -709,7 +732,9 @@
             "lift_coef": 1.0,
             "base_drag": 0.02,
             "induced_drag": 0.2,
-            "normal_flip": 1
+            "normal_flip": 1,
+            "collision_enabled": true,
+            "collision_radius": 0.02
         },
         {
             "type": "AeroBeam",
@@ -724,7 +749,9 @@
             "lift_coef": 1.0,
             "base_drag": 0.02,
             "induced_drag": 0.2,
-            "normal_flip": 1
+            "normal_flip": 1,
+            "collision_enabled": true,
+            "collision_radius": 0.02
         },
         {
             "type": "AeroBeam",
@@ -739,7 +766,9 @@
             "lift_coef": 1.0,
             "base_drag": 0.02,
             "induced_drag": 0.2,
-            "normal_flip": -1
+            "normal_flip": -1,
+            "collision_enabled": true,
+            "collision_radius": 0.02
         },
         {
             "type": "AeroBeam",
@@ -754,7 +783,9 @@
             "lift_coef": 1.0,
             "base_drag": 0.02,
             "induced_drag": 0.2,
-            "normal_flip": 1
+            "normal_flip": 1,
+            "collision_enabled": true,
+            "collision_radius": 0.02
         },
         {
             "type": "AeroBeam",
@@ -769,7 +800,9 @@
             "lift_coef": 1.0,
             "base_drag": 0.02,
             "induced_drag": 0.2,
-            "normal_flip": 1
+            "normal_flip": 1,
+            "collision_enabled": true,
+            "collision_radius": 0.02
         },
         {
             "type": "AeroBeam",
@@ -784,7 +817,9 @@
             "lift_coef": 1.0,
             "base_drag": 0.02,
             "induced_drag": 0.2,
-            "normal_flip": -1
+            "normal_flip": -1,
+            "collision_enabled": true,
+            "collision_radius": 0.02
         },
         {
             "type": "AeroBeam",
@@ -799,7 +834,9 @@
             "lift_coef": 1.0,
             "base_drag": 0.02,
             "induced_drag": 0.2,
-            "normal_flip": -1
+            "normal_flip": -1,
+            "collision_enabled": true,
+            "collision_radius": 0.02
         },
         {
             "type": "AeroBeam",
@@ -814,7 +851,9 @@
             "lift_coef": 1.0,
             "base_drag": 0.02,
             "induced_drag": 0.2,
-            "normal_flip": -1
+            "normal_flip": -1,
+            "collision_enabled": true,
+            "collision_radius": 0.02
         }
     ]
 }

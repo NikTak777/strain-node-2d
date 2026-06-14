@@ -32,9 +32,11 @@ from strainnode2d.core.camera import Camera
 from strainnode2d.physics.serializer import snapshot_scene, restore_scene, load_scene
 
 FPS = 1000
-WORLD_WIDTH, WORLD_HEIGHT = 1000.0, 80.0
+WORLD_WIDTH, WORLD_HEIGHT = 500.0, 80.0
 SCALE = 10.0
 WIDTH, HEIGHT = 1920, 1080
+SELECTION_COLOR = (255, 215, 0)
+SELECTION_ANCHOR_COLOR = (255, 130, 40)
 
 
 class SimulationApp:
@@ -263,6 +265,14 @@ class SimulationApp:
         return surf
 
     @staticmethod
+    def _selection_highlight_color(entity, selected: list) -> tuple[int, int, int]:
+        if len(selected) <= 1:
+            return SELECTION_COLOR
+        if entity is selected[-1]:
+            return SELECTION_ANCHOR_COLOR
+        return SELECTION_COLOR
+
+    @staticmethod
     def draw_springs(screen, springs, scale, height):
         """
         Отрисовка массива упругих связей (балок) на экране.
@@ -393,7 +403,8 @@ class SimulationApp:
             pygame.draw.line(self.screen, color, start_pos, end_pos, thickness)
 
             if spring in self.selected_springs:
-                pygame.draw.line(self.screen, (255, 215, 0), start_pos, end_pos, thickness + 4)
+                highlight = self._selection_highlight_color(spring, self.selected_springs)
+                pygame.draw.line(self.screen, highlight, start_pos, end_pos, thickness + 4)
 
         # Отрисовка узлов
         for obj in self.sim.objects:
@@ -415,7 +426,11 @@ class SimulationApp:
                                    max(1, int(frozen_radius * 0.45)))
 
             if obj in self.selected_nodes:
-                pygame.draw.circle(self.screen, (255, 215, 0), (screen_x, screen_y), int(obj.radius * eff_scale) + 4, 3)
+                highlight = self._selection_highlight_color(obj, self.selected_nodes)
+                pygame.draw.circle(
+                    self.screen, highlight, (screen_x, screen_y),
+                    int(obj.radius * eff_scale) + 4, 3,
+                )
 
         # Отрисовка рамки выделения
         if self.is_selecting:
@@ -467,8 +482,8 @@ class SimulationApp:
         self._draw_aero_debug()
 
         if self.inspector.is_visible(self):
-            target = self.inspector.get_inspection_target(self)
-            self.inspector.draw(self.screen, target, self.scale, self.camera, self.width, self.height)
+            ctx = self.inspector.get_selection_context(self)
+            self.inspector.draw(self.screen, ctx, self.scale, self.camera, self.width, self.height)
         else:
             self.inspector.close_edit_mode()
             self.inspector.close_type_picker()

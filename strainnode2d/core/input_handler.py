@@ -305,9 +305,9 @@ class InputHandler:
                     app.inspector.toggle_enabled()
 
                 elif event.key == pygame.K_e:
-                    target = app.inspector.get_inspection_target(app)
-                    if target is not None and app.inspector.enabled:
-                        app.inspector.open_edit_mode(target)
+                    ctx = app.inspector.get_selection_context(app)
+                    if ctx is not None and app.inspector.enabled:
+                        app.inspector.open_edit_mode(ctx)
 
                 elif event.key == pygame.K_DELETE:
                     for spring in app.selected_springs:
