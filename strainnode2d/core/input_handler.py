@@ -68,6 +68,9 @@ class InputHandler:
 
                 if event.button == 1:  # ЛКМ (Выделение или перетаскивание)
 
+                    if app.prefab_menu.handle_mouse_down(mx, my, app):
+                        continue
+
                     if app.inspector.handle_mouse_down(mx, my, app):
                         continue
 
@@ -303,6 +306,9 @@ class InputHandler:
 
                 elif event.key == pygame.K_q:
                     app.inspector.toggle_enabled()
+
+                elif event.key == pygame.K_p:
+                    app.prefab_menu.toggle_visible()
 
                 elif event.key == pygame.K_e:
                     ctx = app.inspector.get_selection_context(app)

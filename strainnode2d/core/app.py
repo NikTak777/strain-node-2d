@@ -27,6 +27,7 @@ from strainnode2d.physics.area import Area
 from strainnode2d.physics.objects import Object, MotorWheel
 from strainnode2d.physics.simulation import PhysicSimulation
 from strainnode2d.ui.inspector import InspectorHUD
+from strainnode2d.ui.prefab_menu import PrefabMenu
 from strainnode2d.core.input_handler import InputHandler
 from strainnode2d.core.camera import Camera
 from strainnode2d.physics.serializer import snapshot_scene, restore_scene, load_scene
@@ -94,6 +95,7 @@ class SimulationApp:
         self.area = Area(world_width, world_height, 0, 0)
         self.sim = PhysicSimulation(self.area)
         self.inspector = InspectorHUD()
+        self.prefab_menu = PrefabMenu()
         self.input_handler = InputHandler(self)
 
         self.camera = Camera(self.width, self.height)
@@ -478,6 +480,8 @@ class SimulationApp:
             color = (255, 200, 50) if i == 1 and self.is_paused else (240, 240, 240)
             text_surface = self.font.render(text_line, True, color)
             self.screen.blit(text_surface, (20, 20 + i * 22))
+
+        self.prefab_menu.draw(self.screen, self.height)
 
         self._draw_aero_debug()
 

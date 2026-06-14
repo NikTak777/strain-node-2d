@@ -17,8 +17,89 @@
 """
 
 import json
+import math
+import os
 from strainnode2d.physics.objects import Object, MotorWheel, StructuralNode
 from strainnode2d.physics.springs import Spring, Rope, Hydraulic, Beam, AeroBeam
+
+
+def _sync_spring_rest_length(spring: Spring):
+    """Выставляет длину покоя по текущей геометрии (сбрасывает начальное натяжение)."""
+    dx = spring.obj2.location[0] - spring.obj1.location[0]
+    dy = spring.obj2.location[1] - spring.obj1.location[1]
+    spring.rest_length = math.sqrt(dx * dx + dy * dy)
+    spring.current_strain = 0.0
+
+
+def _create_object_from_data(
+    obj_data: dict,
+    offset_x: float = 0.0,
+    offset_y: float = 0.0,
+    zero_velocity: bool = False,
+) -> Object:
+    obj_type = obj_data["type"]
+    velocity = [0.0, 0.0] if zero_velocity else obj_data["velocity"]
+
+    kwargs = {
+        "x": obj_data["x"] + offset_x,
+        "y": obj_data["y"] + offset_y,
+        "radius": obj_data["radius"],
+        "velocity": velocity,
+        "density": obj_data["density"],
+        "restitution": obj_data["restitution"],
+        "friction": obj_data["friction"],
+        "color": tuple(obj_data["color"]),
+    }
+
+    if obj_type == "MotorWheel":
+        kwargs["power"] = obj_data.get("power", 500.0)
+        kwargs["max_speed"] = obj_data.get("max_speed", 50.0)
+        obj = MotorWheel(**kwargs)
+    elif obj_type == "StructuralNode":
+        obj = StructuralNode(**kwargs)
+    else:
+        obj = Object(**kwargs)
+
+    obj.is_static = obj_data.get("is_static", False)
+    obj.node_collision_enabled = obj_data.get("node_collision_enabled", True)
+    obj.angle = obj_data.get("angle", 0.0)
+    obj.angular_velocity = 0.0 if zero_velocity else obj_data.get("angular_velocity", 0.0)
+    return obj
+
+
+def _create_spring_from_data(spring_data: dict, obj1: Object, obj2: Object) -> Spring:
+    s_type = spring_data.get("type", "Spring")
+    kwargs = {
+        "k": spring_data.get("k", 15000.0),
+        "d": spring_data.get("d", 150.0),
+        "yield_limit": spring_data.get("yield_limit", float("inf")),
+        "break_limit": spring_data.get("break_limit", 0.35),
+    }
+    if "rest_length" in spring_data:
+        kwargs["rest_length"] = spring_data["rest_length"]
+
+    if s_type == "Rope":
+        spring = Rope(obj1, obj2, **kwargs)
+    elif s_type == "Beam":
+        spring = Beam(obj1, obj2, **kwargs)
+    elif s_type == "Hydraulic":
+        kwargs["speed"] = spring_data.get("speed", 2.0)
+        kwargs["min_length"] = spring_data.get("min_length", 0.5)
+        kwargs["max_length"] = spring_data.get("max_length", 5.0)
+        spring = Hydraulic(obj1, obj2, **kwargs)
+    elif s_type == "AeroBeam":
+        kwargs["chord"] = spring_data.get("chord", 1.0)
+        kwargs["lift_coef"] = spring_data.get("lift_coef", 1.5)
+        kwargs["base_drag"] = spring_data.get("base_drag", 0.1)
+        kwargs["induced_drag"] = spring_data.get("induced_drag", 1.0)
+        kwargs["normal_flip"] = spring_data.get("normal_flip", 1)
+        spring = AeroBeam(obj1, obj2, **kwargs)
+    else:
+        spring = Spring(obj1, obj2, **kwargs)
+
+    spring.collision_enabled = spring_data.get("collision_enabled", False)
+    spring.collision_radius = spring_data.get("collision_radius", 0.08)
+    return spring
 
 
 def snapshot_scene(sim) -> dict:
@@ -89,81 +170,56 @@ def restore_scene(sim, data: dict):
     id_to_obj = {}
 
     for obj_data in data["objects"]:
-        obj_type = obj_data["type"]
-
-        kwargs = {
-            "x": obj_data["x"],
-            "y": obj_data["y"],
-            "radius": obj_data["radius"],
-            "velocity": obj_data["velocity"],
-            "density": obj_data["density"],
-            "restitution": obj_data["restitution"],
-            "friction": obj_data["friction"],
-            "color": tuple(obj_data["color"])
-        }
-
-        if obj_type == "MotorWheel":
-            kwargs["power"] = obj_data.get("power", 500.0)
-            kwargs["max_speed"] = obj_data.get("max_speed", 50.0)
-            obj = MotorWheel(**kwargs)
-        elif obj_type == "StructuralNode":
-            obj = StructuralNode(**kwargs)
-        else:
-            obj = Object(**kwargs)
-
-        obj.is_static = obj_data.get("is_static", False)
-        obj.node_collision_enabled = obj_data.get("node_collision_enabled", True)
-        obj.angle = obj_data.get("angle", 0.0)
-        obj.angular_velocity = obj_data.get("angular_velocity", 0.0)
-
+        obj = _create_object_from_data(obj_data)
         id_to_obj[obj_data["id"]] = obj
         sim.add_object(obj)
 
-    # 2. Восстанавливаем пружины с учетом их типа
     for spring_data in data["springs"]:
         obj1 = id_to_obj[spring_data["obj1_id"]]
         obj2 = id_to_obj[spring_data["obj2_id"]]
-
-        # Получаем тип. Если это старое сохранение, по умолчанию будет "Spring"
-        s_type = spring_data.get("type", "Spring")
-
-        # Собираем общие аргументы
-        kwargs = {
-            "k": spring_data.get("k", 15000.0),
-            "d": spring_data.get("d", 150.0),
-            "yield_limit": spring_data.get("yield_limit", float('inf')),
-            "break_limit": spring_data.get("break_limit", 0.35)
-        }
-
-        # Восстанавливаем сохраненную длину, если она есть
-        if "rest_length" in spring_data:
-            kwargs["rest_length"] = spring_data["rest_length"]
-
-        # Создаем нужный класс балки
-        if s_type == "Rope":
-            spring = Rope(obj1, obj2, **kwargs)
-        elif s_type == "Beam":
-            spring = Beam(obj1, obj2, **kwargs)
-        elif s_type == "Hydraulic":
-            kwargs["speed"] = spring_data.get("speed", 2.0)
-            kwargs["min_length"] = spring_data.get("min_length", 0.5)
-            kwargs["max_length"] = spring_data.get("max_length", 5.0)
-            spring = Hydraulic(obj1, obj2, **kwargs)
-        elif s_type == "AeroBeam":
-            kwargs["chord"] = spring_data.get("chord", 1.0)
-            kwargs["lift_coef"] = spring_data.get("lift_coef", 1.5)
-            kwargs["base_drag"] = spring_data.get("base_drag", 0.1)
-            kwargs["induced_drag"] = spring_data.get("induced_drag", 1.0)
-            kwargs["normal_flip"] = spring_data.get("normal_flip", 1)
-            spring = AeroBeam(obj1, obj2, **kwargs)
-        else:
-            # Фолбэк на обычную пружину
-            spring = Spring(obj1, obj2, **kwargs)
-
-        spring.collision_enabled = spring_data.get("collision_enabled", False)
-        spring.collision_radius = spring_data.get("collision_radius", 0.08)
-
+        spring = _create_spring_from_data(spring_data, obj1, obj2)
         sim.add_spring(spring)
+
+
+def load_prefab_file(filename: str) -> dict:
+    """Читает JSON префаба с диска."""
+    with open(filename, "r", encoding="utf-8") as f:
+        return json.load(f)
+
+
+def spawn_prefab(sim, data: dict) -> tuple[list, list]:
+    """
+    Добавляет префаб в текущую сцену на координатах из файла.
+    Скорости обнуляются, длины покоя балок синхронизируются с геометрией.
+    """
+    objects_data = data.get("objects", [])
+    if not objects_data:
+        return [], []
+
+    id_to_obj = {}
+    new_objects = []
+    for obj_data in objects_data:
+        obj = _create_object_from_data(obj_data, zero_velocity=True)
+        id_to_obj[obj_data["id"]] = obj
+        sim.add_object(obj)
+        new_objects.append(obj)
+
+    new_springs = []
+    for spring_data in data.get("springs", []):
+        obj1 = id_to_obj[spring_data["obj1_id"]]
+        obj2 = id_to_obj[spring_data["obj2_id"]]
+        spring = _create_spring_from_data(spring_data, obj1, obj2)
+        _sync_spring_rest_length(spring)
+        sim.add_spring(spring)
+        new_springs.append(spring)
+
+    return new_objects, new_springs
+
+
+def get_default_prefabs_dir() -> str:
+    """Путь к data/prefabs относительно корня проекта."""
+    root = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+    return os.path.join(root, "data", "prefabs")
 
 
 def save_scene(sim, filename):
