@@ -31,6 +31,7 @@ def snapshot_node(node: Object, cx: float, cy: float) -> dict:
         "friction": node.friction,
         "color": node.color,
         "is_static": getattr(node, "is_static", False),
+        "node_collision_enabled": getattr(node, "node_collision_enabled", True),
         "angle": node.angle,
     }
     if isinstance(node, MotorWheel):
@@ -108,6 +109,7 @@ def instantiate_node(node_data: dict, anchor_x: float, anchor_y: float) -> Objec
         new_obj = Object(**kwargs)
 
     new_obj.is_static = node_data.get("is_static", False)
+    new_obj.node_collision_enabled = node_data.get("node_collision_enabled", True)
     new_obj.angle = node_data.get("angle", 0.0)
     new_obj.angular_velocity = 0.0
     return new_obj

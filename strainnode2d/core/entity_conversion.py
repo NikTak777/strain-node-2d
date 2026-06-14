@@ -74,6 +74,7 @@ def convert_object_type(source: Object, new_type: str):
         new_obj = Object(**kwargs)
 
     new_obj.is_static = source.is_static
+    new_obj.node_collision_enabled = getattr(source, "node_collision_enabled", True)
     new_obj.angle = source.angle
     new_obj.surface = None
 

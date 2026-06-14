@@ -43,6 +43,8 @@ def snapshot_scene(sim) -> dict:
             "angle": obj.angle,
             "angular_velocity": obj.angular_velocity,
         }
+        if not getattr(obj, 'node_collision_enabled', True):
+            obj_data["node_collision_enabled"] = False
         if isinstance(obj, MotorWheel):
             obj_data["power"] = obj.power
             obj_data["max_speed"] = obj.max_speed
@@ -110,6 +112,7 @@ def restore_scene(sim, data: dict):
             obj = Object(**kwargs)
 
         obj.is_static = obj_data.get("is_static", False)
+        obj.node_collision_enabled = obj_data.get("node_collision_enabled", True)
         obj.angle = obj_data.get("angle", 0.0)
         obj.angular_velocity = obj_data.get("angular_velocity", 0.0)
 

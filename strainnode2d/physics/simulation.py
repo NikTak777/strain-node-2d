@@ -260,6 +260,11 @@ class PhysicSimulation:
                         if pair_id in connected_pairs:
                             continue
 
+                        if not getattr(obj1, 'node_collision_enabled', True):
+                            continue
+                        if not getattr(obj2, 'node_collision_enabled', True):
+                            continue
+
                         # Вектор расстояния между центрами шаров
                         dx = obj2.location[0] - obj1.location[0]
                         dy = obj2.location[1] - obj1.location[1]

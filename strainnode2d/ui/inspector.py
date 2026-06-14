@@ -92,6 +92,7 @@ class InspectorHUD:
         self.change_btn_rect = None
         self.flip_btn_rect = None
         self.collision_btn_rect = None
+        self.node_collision_btn_rect = None
         self.edit_btn_rect = None
         self.save_btn_rect = None
         self.cancel_btn_rect = None
@@ -363,6 +364,11 @@ class InspectorHUD:
                     target.normal_flip *= -1
                 return True
 
+        if isinstance(target, Object):
+            if self.node_collision_btn_rect and self.node_collision_btn_rect.collidepoint(mx, my):
+                target.node_collision_enabled = not target.node_collision_enabled
+                return True
+
         if self.change_btn_rect and self.change_btn_rect.collidepoint(mx, my):
             self.open_type_picker(target)
             return True
@@ -545,6 +551,8 @@ class InspectorHUD:
             content_height += self.btn_height + 5
             if target.__class__.__name__ == "AeroBeam":
                 content_height += self.btn_height + 5
+        elif isinstance(target, Object):
+            content_height += self.btn_height + 5
         return max_width + self.padding * 2, content_height
 
     def _build_view_lines(self, target: Union[Object, Spring]) -> list[str]:
@@ -560,6 +568,7 @@ class InspectorHUD:
                 f"Коэф. прыгучести: {target.restitution:.2f}",
                 f"Коэф. трения:     {target.friction:.2f}",
                 f"Статичный:        {'Да' if getattr(target, 'is_static', False) else 'Нет'}",
+                f"Коллизия с узлами:   {'Вкл' if getattr(target, 'node_collision_enabled', True) else 'Выкл'}",
                 f"Скор. общ:        {speed:.2f} м/с",
                 f"Вращение:         {target.angular_velocity:.2f} рад/с",
             ])
@@ -688,6 +697,7 @@ class InspectorHUD:
         self.change_btn_rect = None
         self.flip_btn_rect = None
         self.collision_btn_rect = None
+        self.node_collision_btn_rect = None
 
         lines = self._build_view_lines(target)
         rendered_lines = [self.font.render(line, True, (240, 240, 240)) for line in lines]
@@ -707,6 +717,15 @@ class InspectorHUD:
         self._draw_button(screen, btn_rect, "Изменить тип", (70, 100, 200))
         self.change_btn_rect = btn_rect
         curr_y += self.btn_height + 5
+
+        if isinstance(target, Object):
+            node_coll_enabled = getattr(target, "node_collision_enabled", True)
+            node_collision_label = "Коллизия с узлами: вкл" if node_coll_enabled else "Коллизия с узлами: выкл"
+            node_collision_color = (60, 160, 90) if node_coll_enabled else (90, 90, 100)
+            node_collision_rect = pygame.Rect(hud_x + self.padding, curr_y, bg_width - self.padding * 2, self.btn_height)
+            self._draw_button(screen, node_collision_rect, node_collision_label, node_collision_color)
+            self.node_collision_btn_rect = node_collision_rect
+            curr_y += self.btn_height + 5
 
         if isinstance(target, Spring):
             collision_label = "Коллизия: выкл" if not target.collision_enabled else "Коллизия: вкл"

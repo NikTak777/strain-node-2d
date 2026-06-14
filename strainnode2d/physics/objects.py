@@ -55,6 +55,7 @@ class Object:
         self.on_ground = False  # Флаг контакта с землей
         self.rolling_resistance = 0.01  # Коэффициент сопротивления качению (0.01 - 0.05)
         self.is_static = False  # Флаг статичного объекта
+        self.node_collision_enabled = True  # Столкновения с другими узлами (балки — отдельно)
 
     def get_location(self):
         """
